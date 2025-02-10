@@ -136,18 +136,17 @@ fn main() {
     let mut selected_inventory_item: Option<Item> = None;
 
     let time_now = SystemTime::now();
-    let mut tick_number = 0;
 
     //main thread used for rendering
     while !rl.window_should_close() {
 
         //update tick stuff
-        while time_now.elapsed().unwrap().as_millis() * 60 / 1000 > tick_number {
+        while time_now.elapsed().unwrap().as_millis() * 60 / 1000 > game_dimension.tick_number {
             player.handle_movement();
             game_dimension.tick_physics();
             game_dimension.tick_chunk_loading(&mut player);
             game_dimension.background_tick(&mut player);
-            tick_number = tick_number + 1;
+            game_dimension.tick_number = game_dimension.tick_number + 1;
         }
         //later threads to possibly add
         //handle game ticks

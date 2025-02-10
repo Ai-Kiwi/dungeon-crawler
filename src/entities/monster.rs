@@ -1,5 +1,5 @@
 use rand::Rng;
-use crate::{game_dimension::GameDimension, physics::{Movement, Position}};
+use crate::{game_dimension::GameDimension, physics::{Movement, Position, Velocity}};
 use super::DamageType;
 
 #[derive(Clone)]
@@ -35,15 +35,15 @@ impl Monster {
         match &self.current_goal {
             Goal::WonderTo { location } => {
                 if location.x > self.movement.position.x {
-                    self.movement.velocity.x += 1.0 * self.speed;
+                    self.movement.velocity.x += 1.0 * self.speed * 0.5;
                 }else if location.x < self.movement.position.x {
-                    self.movement.velocity.x += -1.0 * self.speed;
+                    self.movement.velocity.x += -1.0 * self.speed * 0.5;
                 }
 
                 if location.y > self.movement.position.y {
-                    self.movement.velocity.y += 1.0 * self.speed;
+                    self.movement.velocity.y += 1.0 * self.speed * 0.5;
                 }else if location.y < self.movement.position.y {
-                    self.movement.velocity.y += -1.0 * self.speed;
+                    self.movement.velocity.y += -1.0 * self.speed * 0.5;
                 }
 
                 let wait_time: f32 = rng.gen();
@@ -76,7 +76,7 @@ impl Monster {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum MonsterType {
     Ghost
 }
@@ -89,4 +89,32 @@ impl MonsterType{
         }
         
     }
+}
+
+pub fn create_monster(monster: MonsterType) -> Monster {
+    println!("spawn monster");
+    return match monster {
+        MonsterType::Ghost => Monster {
+            health: 15.0,
+            max_health: 15.0,
+            movement: Movement {
+                velocity: Velocity {
+                    x: 0.0,
+                    y: 0.0,
+                },
+                position: Position { 
+                    x: 0.0, 
+                    y: 0.0 
+                },
+                drag: 0.05,
+                mass: 20.0,
+            },
+            level: 1,
+            current_goal: Goal::Idle { auto_expire_time: 0 },
+            mob_type: MonsterType::Ghost,
+            tick_age: 0,
+            speed: 0.05,
+        },
+    };
+
 }
