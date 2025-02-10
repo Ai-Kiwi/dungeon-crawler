@@ -86,6 +86,7 @@ pub struct BiomeNoise {
 pub struct GameDimension{
     pub chunks : HashMap<(i32,i32),Chunk>,
     pub biome_noise: BiomeNoise,
+    pub tick_number: u128
 }
 
 impl GameDimension {
@@ -112,6 +113,7 @@ impl GameDimension {
                 biome_temperature: biome_temperature_hasher,
                 biome_swamp_water : biome_swamp_water_hasher,
             },
+            tick_number: 0,
         }
     }
 
@@ -131,6 +133,25 @@ impl GameDimension {
                 result
             },
             None => Block::Unloaded,
+        }
+    }
+
+    pub fn get_biome(&self, x : i32, y : i32) -> Biome {
+        let chunk_x = (x as f32 / 16.0).floor() as i32; 
+        let chunk_y = (y as f32 / 16.0).floor() as i32;
+
+        let chunk_data: Option<&Chunk> = self.chunks.get(&(chunk_x,chunk_y));
+
+        let in_chunk_x = x - (chunk_x * 16);
+        let in_chunk_y= y - (chunk_y * 16);
+
+        match chunk_data {
+            Some(data) => {
+                let array_loc: usize = (in_chunk_x + (in_chunk_y * 16)).try_into().unwrap();
+                let result = data.biome_data.get(array_loc).unwrap().clone();
+                result
+            },
+            None => Biome::Shrubland,
         }
     }
 
