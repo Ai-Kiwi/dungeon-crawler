@@ -203,35 +203,43 @@ fn main() {
         }
 
         let scroll = rl.get_mouse_wheel_move();
-        if inventory_open == true {
-            inventory_scroll_offset += scroll as i32 * -1;
-            if inventory_scroll_offset < 0 {
-                inventory_scroll_offset = 0;
-            }
-            if rl.is_key_pressed(KeyboardKey::KEY_I) {
-                inventory_open = false;
+        if rl.is_key_down(KeyboardKey::KEY_LEFT_ALT) {
+            if scroll  > 0.0 {
+                camera.base_zoom = camera.base_zoom * 0.9; 
+            }else if scroll < 0.0 {
+                camera.base_zoom = camera.base_zoom * 1.1;
             }
         }else{
-            selected_hotbar_slot += scroll as i32 * -1;
-            if selected_hotbar_slot < 0 {
-                selected_hotbar_slot = 8;
-            }
-            if selected_hotbar_slot > 8 {
-                selected_hotbar_slot = 0;
-            }
-            if scroll != 0.0 {
-                let new_hotbar_slot = player.hotbar[selected_hotbar_slot as usize].clone();
-                player.main_hand = new_hotbar_slot;
-            }
-            if rl.is_key_pressed(KeyboardKey::KEY_TAB) {
-                let old_offhand_item = player.off_hand.clone();
-                let old_mainhand_item = player.main_hand.clone();
-                player.main_hand = old_offhand_item;
-                player.off_hand = old_mainhand_item;
-            }
-            if rl.is_key_pressed(KeyboardKey::KEY_I) {
-                inventory_open = true;
-                inventory_scroll_offset = 0;
+            if inventory_open == true {
+                inventory_scroll_offset += scroll as i32 * -1;
+                if inventory_scroll_offset < 0 {
+                    inventory_scroll_offset = 0;
+                }
+                if rl.is_key_pressed(KeyboardKey::KEY_I) {
+                    inventory_open = false;
+                }
+            }else{
+                selected_hotbar_slot += scroll as i32 * -1;
+                if selected_hotbar_slot < 0 {
+                    selected_hotbar_slot = 8;
+                }
+                if selected_hotbar_slot > 8 {
+                    selected_hotbar_slot = 0;
+                }
+                if scroll != 0.0 {
+                    let new_hotbar_slot = player.hotbar[selected_hotbar_slot as usize].clone();
+                    player.main_hand = new_hotbar_slot;
+                }
+                if rl.is_key_pressed(KeyboardKey::KEY_TAB) {
+                    let old_offhand_item = player.off_hand.clone();
+                    let old_mainhand_item = player.main_hand.clone();
+                    player.main_hand = old_offhand_item;
+                    player.off_hand = old_mainhand_item;
+                }
+                if rl.is_key_pressed(KeyboardKey::KEY_I) {
+                    inventory_open = true;
+                    inventory_scroll_offset = 0;
+                }
             }
         }
         
@@ -243,13 +251,7 @@ fn main() {
         camera.position.x = player_position.x;
         camera.position.y = player_position.y;
         //camera.zoom =  32.0 / (camera.screen_height as f32);
-        camera.zoom =  16.0 / (camera.screen_height as f32);
-        //key used for zoom out, used for debug
-        if rl.is_key_down(KeyboardKey::KEY_K) {
-            camera.zoom =  64.0 / (camera.screen_height as f32);
-        }else {
-            camera.zoom =  16.0 / (camera.screen_height as f32);
-        }
+        camera.zoom =  (16.0 / (camera.screen_height as f32)) * camera.base_zoom;
         
         //////////////////////
         //  render the game //
@@ -546,7 +548,6 @@ fn main() {
 
             for item in render_buffer.iter() {
                 d.draw_texture_ex(item.render_asset, Vector2::new(item.render_position.x, item.render_position.y), item.render_rotation, item.render_scale, Color::WHITE);
-
                 match &item.health_bar_buffer_info {
                     Some(bar_info) => {
                         bar_info.health;
@@ -721,7 +722,7 @@ fn main() {
             d.draw_text("I : open inventory", 5, 95, 15, Color::WHITE);
             d.draw_text("P : pickup items", 5, 110, 15, Color::WHITE);
             d.draw_text("TAB : swap current item between off hand and main", 5, 125, 15, Color::WHITE);
-            d.draw_text("K : zoom out", 5, 140, 15, Color::WHITE);
+            d.draw_text("alt + scroll : zoom in/out", 5, 140, 15, Color::WHITE);
             d.draw_text("Scroll : change selected slot and scroll in inventory", 5, 155, 15, Color::WHITE);
 
         }
