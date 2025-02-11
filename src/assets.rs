@@ -22,8 +22,7 @@ pub struct Assets {
     pub bush: Texture2D,
     pub swamp_tree: Texture2D,
     pub stick: Texture2D,
-
-
+    pub jungle_tree: Texture2D,
 }
 
 impl Assets {
@@ -49,6 +48,7 @@ impl Assets {
             bush: rl.load_texture(&thread, "assets/bush.png").unwrap(),
             swamp_tree: rl.load_texture(&thread, "assets/swamp_tree.png").unwrap(),
             stick: rl.load_texture(&thread, "assets/stick.png").unwrap(),
+            jungle_tree: rl.load_texture(&thread, "assets/jungle_tree.png").unwrap(),
 
         }
     }
