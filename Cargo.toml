@@ -8,3 +8,4 @@ rand = "0.8.5"
 random-string = "1.1.0"
 raylib = { version = "5.0" }
 noise = "0.9"
+trig = "0.1.3"

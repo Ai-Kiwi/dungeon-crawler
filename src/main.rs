@@ -10,7 +10,7 @@ mod background_logic;
 mod item;
 
 use std::{cmp::Ordering, f32::consts::PI, time::SystemTime};
-
+use trig::Trig;
 use assets::Assets;
 use camera::Camera;
 use entities::{environmental_object, monster::MonsterType};
@@ -30,7 +30,7 @@ struct RenderBufferItem<'a> {
     render_position : Position,
     render_asset : &'a Texture2D,
     real_position : Position,
-    render_scale : f32,
+    render_width : f32,
     render_rotation : f32,
     health_bar_buffer_info: Option<HealthBarBufferInfo>,
     layer: u8,
@@ -181,10 +181,9 @@ fn main() {
         let mouse_position = rl.get_mouse_position();
         let mouse_down = rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT);
         let player_facing = {
-            let dx = mouse_position.x - (camera.screen_width as f32 / 2.0);
+            let dx =  mouse_position.x - (camera.screen_width as f32 / 2.0);
             let dy = (mouse_position.y - (camera.screen_height as f32 / 2.0 )) * -1.0; //fip final value as mouse vertical is flipped
-            let angle_rad = dy.atan2(dx); // angle in radians
-            let mut angle_deg = angle_rad * 180.0 / PI; // convert to degrees
+            let mut angle_deg = -dy.atan2(dx).to_degrees();
             if angle_deg < 0.0 {
                 angle_deg += 360.0; // adjust negative angles to positive
             }
@@ -309,7 +308,7 @@ fn main() {
                                         x: x as f32 + 0.5,
                                         y: y as f32 + 0.5,
                                     },
-                                    render_scale: 1.0 / camera.zoom / 16.0,
+                                    render_width: 1.0 / camera.zoom,
                                     render_rotation: 0.0,
                                     health_bar_buffer_info: None,
                                     layer: 1,
@@ -333,7 +332,7 @@ fn main() {
                                             x: item.position.x,
                                             y: item.position.y,
                                         },
-                                        render_scale: 1.0 / camera.zoom / 16.0,
+                                        render_width: 2.0 / camera.zoom,
                                         render_rotation: 0.0,
                                         health_bar_buffer_info: None,
                                         layer: 5,
@@ -350,7 +349,7 @@ fn main() {
                                             x: item.position.x,
                                             y: item.position.y,
                                         },
-                                        render_scale: 1.0 / camera.zoom / 16.0,
+                                        render_width: 2.0 / camera.zoom,
                                         render_rotation: 0.0,
                                         health_bar_buffer_info: None,
                                         layer: 5,
@@ -367,7 +366,7 @@ fn main() {
                                             x: item.position.x,
                                             y: item.position.y,
                                         },
-                                        render_scale: 1.0 / camera.zoom / 16.0,
+                                        render_width: 2.0 / camera.zoom,
                                         render_rotation: 0.0,
                                         health_bar_buffer_info: None,
                                         layer: 5,
@@ -384,7 +383,7 @@ fn main() {
                                             x: item.position.x,
                                             y: item.position.y,
                                         },
-                                        render_scale: 1.0 / camera.zoom / 16.0,
+                                        render_width: 2.0 / camera.zoom,
                                         render_rotation: 0.0,
                                         health_bar_buffer_info: None,
                                         layer: 5,
@@ -401,7 +400,7 @@ fn main() {
                                             x: item.position.x,
                                             y: item.position.y,
                                         },
-                                        render_scale: 1.0 / camera.zoom / 16.0,
+                                        render_width: 1.0 / camera.zoom,
                                         render_rotation: 0.0,
                                         health_bar_buffer_info: None,
                                         layer: 5,
@@ -431,7 +430,7 @@ fn main() {
                                     x: x_pos,
                                     y: y_pos,
                                 },
-                                render_scale: 1.0 / camera.zoom / 16.0,
+                                render_width: 1.0 / camera.zoom,
                                 render_rotation: 0.0,
                                 health_bar_buffer_info: {
                                     Some(HealthBarBufferInfo{
@@ -453,16 +452,16 @@ fn main() {
                             let texture = get_texture_from_item(&dropped_item.item, &assets);
                             render_buffer.push(RenderBufferItem{
                                 render_position: Position{
-                                    x: camera.convert_x_pos_to_screen(&dropped_item.position.x, &1.0, 0.0),
-                                    y: camera.convert_y_pos_to_screen(&dropped_item.position.y, &1.0, 0.0),
+                                    x: camera.convert_x_pos_to_screen(&dropped_item.position.x, &1.0, dropped_item.rotation),
+                                    y: camera.convert_y_pos_to_screen(&dropped_item.position.y, &1.0, dropped_item.rotation),
                                 },
                                 render_asset: texture,
                                 real_position: Position{
                                     x: dropped_item.position.x,
                                     y: dropped_item.position.y,
                                 },
-                                render_scale: 1.0 / camera.zoom / 16.0,
-                                render_rotation: 0.0,
+                                render_width: 1.0 / camera.zoom,
+                                render_rotation: dropped_item.rotation,
                                 health_bar_buffer_info: None,
                                 layer: 3,
                             });
@@ -493,7 +492,7 @@ fn main() {
                     x: player_position.x,
                     y: player_position.y,
                 },
-                render_scale: 1.0 / camera.zoom / 16.0,
+                render_width: 1.0 / camera.zoom,
                 render_rotation: 0.0,
                 health_bar_buffer_info: None,
                 layer: 5,
@@ -506,16 +505,16 @@ fn main() {
                 let texture = get_texture_from_item(&item, &assets);
                 render_buffer.push(RenderBufferItem{
                     render_position: Position{
-                        x: camera.convert_x_pos_to_screen(&(player_position.x + player_facing.to_radians().cos() * 0.5), &1.0, player_facing),
-                        y: camera.convert_y_pos_to_screen(&(player_position.y + player_facing.to_radians().sin() * 0.5), &1.0, player_facing),
+                        x: camera.convert_x_pos_to_screen(&(player_position.x + player_facing.to_radians().cos() * 0.75), &1.0, player_facing + 90.0),
+                        y: camera.convert_y_pos_to_screen(&(player_position.y + player_facing.to_radians().sin() * -0.75), &1.0, player_facing + 90.0),
                     },
                     render_asset: texture,
                     real_position: Position{
                         x: player_position.x,
                         y: player_position.y,
                     },
-                    render_scale: 1.0 / camera.zoom / 16.0,
-                    render_rotation: player_facing,
+                    render_width: 1.0 / camera.zoom,
+                    render_rotation: player_facing + 90.0,
                     health_bar_buffer_info: None,
                     layer: 5,
                 });
@@ -545,9 +544,8 @@ fn main() {
             });
 
             //draw health bar for monsters
-
             for item in render_buffer.iter() {
-                d.draw_texture_ex(item.render_asset, Vector2::new(item.render_position.x, item.render_position.y), item.render_rotation, item.render_scale, Color::WHITE);
+                d.draw_texture_ex(item.render_asset, Vector2::new(item.render_position.x, item.render_position.y), item.render_rotation, item.render_width / (item.render_asset.width as f32), Color::WHITE);
                 match &item.health_bar_buffer_info {
                     Some(bar_info) => {
                         bar_info.health;
@@ -724,7 +722,6 @@ fn main() {
             d.draw_text("TAB : swap current item between off hand and main", 5, 125, 15, Color::WHITE);
             d.draw_text("alt + scroll : zoom in/out", 5, 140, 15, Color::WHITE);
             d.draw_text("Scroll : change selected slot and scroll in inventory", 5, 155, 15, Color::WHITE);
-
         }
         
 
