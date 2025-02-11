@@ -2,6 +2,7 @@ use crate::physics::{Position, Velocity};
 
 pub struct Camera {
     pub zoom : f32,
+    pub base_zoom : f32,
     pub screen_width: u32,
     pub screen_height : u32,
     pub velocity: Velocity,
@@ -43,6 +44,7 @@ impl Camera {
             },
             screen_width: 1280,
             screen_height: 720,
+            base_zoom: 1.0,
         }
     }
 }

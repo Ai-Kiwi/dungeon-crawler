@@ -75,7 +75,7 @@ impl GameDimension {
         //make sure no more mobs nearby
 
         let loaded_chunks: Vec<(i32,i32)> = self.chunks.keys().cloned().collect();
-        println!("{}",loaded_chunks.iter().count());
+        //println!("{}",loaded_chunks.iter().count());
         for chunk in loaded_chunks {
             
             let mut monster_spawn_chances: Vec<MonsterSpawnChance> = Vec::new();
