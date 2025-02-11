@@ -266,17 +266,25 @@ impl GameDimension {
                 },
                 Biome::TropicalJungle => {
                     block = Block::Grass;
-                    //let chance: f32 = rng.gen();
+                    let chance: f32 = rng.gen();
 
-                    //if chance < 0.7 {
-                    //    environmental_objects.push(EnvironmentalObject{
-                    //        ObjectType: environmental_object::EnvironmentalObjectType::Tree,
-                    //        Position: Position{
-                    //            x: block_x as f32,
-                    //            y: block_y as f32,
-                    //        },
-                    //    });
-                    //}
+                    if chance < 0.4 {
+                        environmental_objects.push(EnvironmentalObject{
+                            object_type: environmental_object::EnvironmentalObjectType::JungleTree,
+                            position: Position{
+                                x: block_x as f32 + offset_environment_item_x,
+                                y: block_y as f32 + offset_environment_item_y,
+                            },
+                        });
+                    }else if chance < 0.5{
+                        environmental_objects.push(EnvironmentalObject{
+                            object_type: environmental_object::EnvironmentalObjectType::Bush,
+                            position: Position{
+                                x: block_x as f32 + offset_environment_item_x,
+                                y: block_y as f32 + offset_environment_item_y,
+                            },
+                        });
+                    }
                 },
                 Biome::DarkForest => {
                     block = Block::DarkGrass;

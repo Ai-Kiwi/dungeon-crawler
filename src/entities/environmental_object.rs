@@ -13,5 +13,6 @@ pub enum EnvironmentalObjectType {
     Tree,
     AppleTree,
     SwampTree,
-    Bush
+    Bush,
+    JungleTree
 }
