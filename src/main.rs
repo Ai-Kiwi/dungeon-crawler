@@ -576,8 +576,8 @@ fn main() {
                         //draw level
                         let level = bar_info.level;
                         let name = MonsterType::get_mob_name(bar_info.mob);
-                        d.draw_text(&format!("Level : {level}"), (bar_info.x_pos - 50.0).floor() as i32, (bar_info.y_pos - 30.0).floor() as i32, 12, Color::WHITE);
-                        d.draw_text(&format!("{name}"), (bar_info.x_pos - 50.0).floor() as i32, (bar_info.y_pos - 45.0).floor() as i32, 12, Color::WHITE);
+                        d.draw_text(&format!("Level : {level}"), (bar_info.x_pos - 50.0).floor() as i32, (bar_info.y_pos - 32.5).floor() as i32, 12, Color::WHITE);
+                        d.draw_text(&format!("{name}"), (bar_info.x_pos - 50.0).floor() as i32, (bar_info.y_pos - 42.5).floor() as i32, 12, Color::WHITE);
 
 
                     },
