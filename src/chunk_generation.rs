@@ -165,6 +165,8 @@ impl GameDimension {
                             },
                         });
                     }else if chance < 0.4 {
+                        let rotation: f32 = rng.gen();
+                        let rotation = rotation * 360.0;
                         dropped_items.push(DroppedItem { 
                             item: Item{
                                 item:PremadeItem::Stick,
@@ -175,7 +177,7 @@ impl GameDimension {
                                 y: block_y as f32 + offset_environment_item_y,
                             },
                             count: 1, 
-                            rotation: 0.0,
+                            rotation: rotation,
                         });
 
                     }
@@ -243,6 +245,8 @@ impl GameDimension {
                             },
                         });
                     }else if chance < 0.2 {
+                        let rotation: f32 = rng.gen();
+                        let rotation = rotation * 360.0;
                         dropped_items.push(DroppedItem { 
                             item: Item{
                                 item:PremadeItem::Stick,
@@ -253,7 +257,7 @@ impl GameDimension {
                                 y: block_y as f32 + offset_environment_item_y,
                             },
                             count: 1, 
-                            rotation: 0.0,
+                            rotation: rotation,
                         });
 
                     }

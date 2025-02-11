@@ -1,3 +1,5 @@
+use trig::Trig;
+
 use crate::physics::{Position, Velocity};
 
 pub struct Camera {
@@ -11,17 +13,24 @@ pub struct Camera {
 
 impl Camera {
     pub fn convert_x_pos_to_screen(&self, x_pos: &f32, object_width: &f32, rotation: f32) -> f32 {
-        let result = ((x_pos - self.position.x - (object_width / 2.0)) / self.zoom) + (self.screen_width as f32 / 2.0);
-        result
+        //calculate offset factoring in height and what not
+        let offset_x = x_pos - ((rotation + 135.0).sind() * (object_width * 0.75));
+
+        let camera_adjusted = offset_x - self.position.x;
+
+        let zoom_adjusted = camera_adjusted / self.zoom;
+
+        let x_adjusted = (self.screen_width as f32 / 2.0) + zoom_adjusted;
+
+        x_adjusted
     }
     
     pub fn convert_y_pos_to_screen(&self, y_pos: &f32, object_height: &f32, rotation: f32) -> f32 {
 
-        let offset_y = (object_height / 2.0) * rotation.to_degrees().sin();
+        //calculate offset factoring in height and what not
+        let offset_y = y_pos - ((rotation + 135.0).cosd() * (object_height * 0.75));
 
-        let center_y = y_pos + offset_y;
-
-        let camera_adjusted = center_y - self.position.y;
+        let camera_adjusted = offset_y - self.position.y;
 
         let zoom_adjusted = camera_adjusted / self.zoom;
 
