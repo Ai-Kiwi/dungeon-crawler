@@ -9,6 +9,16 @@ use crate::entities::monster::Monster;
 use crate::physics::Position;
 
 
+pub enum MagicElements {
+    Fire,
+    Ice,
+    Wind,
+    Earth,
+    Dark,
+    Light,
+    
+}
+
 
 #[derive(Clone)]
 pub enum Block {

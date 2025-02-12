@@ -88,6 +88,15 @@ pub struct Velocity {
     pub x : f32,
     pub y : f32,
 }
+impl Velocity {
+    pub fn new() -> Self { 
+        Velocity { 
+            x: 0.0, 
+            y: 0.0 
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Position {
     pub x: f32,
@@ -99,5 +108,11 @@ impl Position {
         let position = self;
         let distance = ((position.x - target_position.x).powi(2) + (position.y - target_position.y).powi(2)).sqrt();
         distance
+    }
+    pub fn new() -> Self { 
+        Position { 
+            x: 0.0, 
+            y: 0.0 
+        }
     }
 }
