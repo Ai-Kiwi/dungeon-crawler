@@ -2,17 +2,6 @@ use rand::Rng;
 use crate::{game_dimension::{GameDimension, MagicElements}, physics::{Movement, Position, Velocity}};
 use super::DamageType;
 
-#[derive(Clone)]
-pub enum Goal {
-    //AttackPlayer,
-    WonderTo {
-        location : Position,
-    },
-    Idle {
-        auto_expire_time : u32
-    }
-}
-
 enum MonsterAttack {
     Melee { reinforced_magic : Option<MagicElements>},
     Ranged { reinforced_magic : Option<MagicElements>},
@@ -23,7 +12,7 @@ enum MonsterAttack {
 }
 
 
-pub enum MonsterState {
+pub enum MonsterAiState {
     Attacking,
     Defend,
     Flee,
@@ -36,7 +25,6 @@ pub struct Monster {
     pub max_health : f32,
     pub movement : Movement,
     pub level : u32,
-    pub current_goal : Goal,
     pub mob_type: MonsterType,
     pub tick_age : u32,
     pub speed : f32,
@@ -45,9 +33,12 @@ pub struct Monster {
 
 trait MonsterAi{
     fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> MonsterAi; 
+    fn get_state(&self) -> MonsterAiState;
 }
 
-struct GhostAi; //you can add extra ai spastic data here like fire blast for dragons.
+struct GhostAi {
+    state : MonsterAiState,
+} //you can add extra ai spastic data here like fire blast for dragons.
 
 impl GhostAi for MonsterAi {
     fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> MonsterAi {
@@ -141,7 +132,6 @@ pub fn create_monster(monster: MonsterType) -> Monster {
                 mass: 20.0,
             },
             level: 1,
-            current_goal: Goal::Idle { auto_expire_time: 0 },
             mob_type: MonsterType::Ghost,
             tick_age: 0,
             speed: 0.05,
