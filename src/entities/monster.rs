@@ -44,13 +44,13 @@ pub struct Monster {
 }
 
 trait MonsterAi{
-    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> Action; 
+    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> MonsterAi; 
 }
 
 struct GhostAi; //you can add extra ai spastic data here like fire blast for dragons.
 
 impl GhostAi for MonsterAi {
-    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> Action {
+    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> MonsterAi {
 
 
     }
