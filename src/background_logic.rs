@@ -1,8 +1,8 @@
 
 use rand::{thread_rng, Rng};
-use raylib::math;
+use uuid::Uuid;
 
-use crate::{entities::{monster::{create_monster, Goal, Monster, MonsterType}, Entity}, game_dimension::{self, get_chunks_in_range, GameDimension}, physics::Position, player::Player};
+use crate::{entities::monster::{create_monster, Monster, MonsterType}, game_dimension::{self, get_chunks_in_range, GameDimension}, physics::Position, player::Player};
 
 struct MonsterSpawnChance {
     mob: MonsterType,
@@ -14,47 +14,20 @@ struct MonsterSpawnChance {
 impl GameDimension {
     pub fn background_tick(&mut self, player: &mut Player) {
         let _ = player;
+        let mut monsters_to_delete = Vec::new();
 
-        let mut monsters_to_tick = Vec::new();
-
-        for chunk in &self.chunks {
-            {
-                //tick monsters
-                for monster in chunk.1.monsters.iter() {
-                    //monster.tick(game_dimension);
-                    monsters_to_tick.push(monster.clone());
-                }
+        for monster in  &mut self.monsters {
+            monster.1.tick();
+            if monster.1.health <= 0.0 {
+                monsters_to_delete.push(*monster.0);
             }
         }
 
-        for monster in monsters_to_tick.iter_mut() {
-            monster.tick(self);
+        for monster in monsters_to_delete {
+            self.monsters.remove(&monster);
+            let chunk_pos = GameDimension::position_to_chunk( &self.monsters.get(&monster).unwrap().movement.position  );
+            self.chunks.get_mut(&chunk_pos).unwrap().monsters.retain(|&x| x != monster);
         }
-
-        monsters_to_tick.retain(|x| {
-            x.health > 0.0 
-        });
-
-        //add the monsters back
-        //delete all monster vectors
-        for chunk in &mut self.chunks {
-            chunk.1.monsters = Vec::new();
-            for monster in &monsters_to_tick {
-                let chunk_x = (monster.position().x / 16.0).floor() as i32;
-                let chunk_y = (monster.position().y / 16.0).floor() as i32;
-                
-                if chunk_x == chunk.0.0 && chunk_y == chunk.0.1 {
-                    chunk.1.monsters.push(monster.clone());
-                }
-
-            }
-
-
-
-        }
-
-        //add to chunks
-
 
         //handle if to tick mob spawns
         if (self.tick_number % 60) == 0 {
@@ -139,26 +112,37 @@ impl GameDimension {
                 if odd <= chance.chance {
                     let in_range_chunks = get_chunks_in_range(&Position{x:spawn_loc_x as f32, y: spawn_loc_y as f32}, chance.spawn_radius);
                     let mut nearby_count = 0;
+                    let mut test_mob_ids: Vec<Uuid> = Vec::new();
                     for counting_chunk in in_range_chunks {
                         match self.chunks.get(&counting_chunk) {
                             Some(chunk_data) => {
                                 for monster in &chunk_data.monsters {
-                                    if monster.mob_type == chance.mob && monster.movement.position.distance_to(&Position{x:spawn_loc_x as f32, y: spawn_loc_y as f32}) <= chance.spawn_radius {
-                                        nearby_count = nearby_count + 1;
-                                    }
+                                    test_mob_ids.push(*monster);
+                                }
+                            },
+                            None => (),
+                        }
+                    }
+                    for monster_id in test_mob_ids {
+                        match Monster::from_id(&self.monsters, monster_id) {
+                            Some(monster) => {
+                                if monster.mob_type == chance.mob && monster.movement.position.distance_to(&Position{x:spawn_loc_x as f32, y: spawn_loc_y as f32}) <= chance.spawn_radius {
+                                    nearby_count = nearby_count + 1;
                                 }
                             },
                             None => (),
                         }
                     }
 
+
                     if nearby_count < chance.max_spawns_per_radius && player.movement.position.distance_to(&Position{x:spawn_loc_x as f32, y: spawn_loc_y as f32}) >= 50.0 {
                         let mut monster = create_monster(chance.mob);
-                        monster.movement.position.x = spawn_loc_x as f32;
-                        monster.movement.position.y = spawn_loc_y as f32;
+                        monster.movement.position.x = spawn_loc_x as f32 + 0.5;
+                        monster.movement.position.y = spawn_loc_y as f32+ 0.5;
                         println!("{}", nearby_count);
                         //spawn in the mob
-                        self.chunks.get_mut(&chunk).unwrap().monsters.push(monster);
+                        self.chunks.get_mut(&chunk).unwrap().monsters.push(monster.id);
+                        self.monsters.insert(monster.id, monster);
                     }
 
 

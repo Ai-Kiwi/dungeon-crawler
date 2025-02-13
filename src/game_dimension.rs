@@ -1,7 +1,9 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use noise::permutationtable::PermutationTable;
 use rand::Rng;
+use uuid::Uuid;
 
 use crate::entities::dropped_item::DroppedItem;
 use crate::entities::environmental_object::{self, EnvironmentalObject};
@@ -78,9 +80,9 @@ pub enum Biome {
 pub struct Chunk {
     pub block_data : [Block; 16 * 16],
     pub biome_data : [Biome; 16 * 16],
-    pub environmental_objects : Vec<EnvironmentalObject>,
-    pub monsters : Vec<Monster>,
-    pub dropped_items : Vec<DroppedItem>,
+    pub environmental_objects : Vec<Uuid>,
+    pub monsters : Vec<Uuid>,
+    pub dropped_items : Vec<Uuid>,
 }
 
 #[derive(Clone)]
@@ -96,7 +98,10 @@ pub struct BiomeNoise {
 pub struct GameDimension{
     pub chunks : HashMap<(i32,i32),Chunk>,
     pub biome_noise: BiomeNoise,
-    pub tick_number: u128
+    pub tick_number: u128,
+    pub environmental_objects : HashMap<Uuid, EnvironmentalObject>,
+    pub monsters : HashMap<Uuid, Monster>,
+    pub dropped_items : HashMap<Uuid, DroppedItem>,
 }
 
 impl GameDimension {
@@ -124,6 +129,9 @@ impl GameDimension {
                 biome_swamp_water : biome_swamp_water_hasher,
             },
             tick_number: 0,
+            environmental_objects: HashMap::new(),
+            monsters: HashMap::new(),
+            dropped_items: HashMap::new(),
         }
     }
 
@@ -163,6 +171,12 @@ impl GameDimension {
             },
             None => Biome::Shrubland,
         }
+    }
+
+    pub fn position_to_chunk(position : &Position) -> (i32,i32) {
+        let chunk_x = (position.x / 16.0).floor() as i32;
+        let chunk_y = (position.y / 16.0).floor() as i32;
+        (chunk_x,chunk_y)
     }
 
 

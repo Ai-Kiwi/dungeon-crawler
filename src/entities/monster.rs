@@ -1,6 +1,10 @@
+use std::{collections::HashMap, ops::Deref};
+
 use rand::Rng;
-use crate::{game_dimension::{GameDimension, MagicElements}, physics::{Movement, Position, Velocity}};
+use uuid::Uuid;
+use crate::{game_dimension::{self, GameDimension, MagicElements}, physics::{Movement, Position, Velocity}};
 use super::DamageType;
+use dyn_clone::DynClone;
 
 enum MonsterAttack {
     Melee { reinforced_magic : Option<MagicElements>},
@@ -11,7 +15,7 @@ enum MonsterAttack {
     Special { reinforced_magic : Option<MagicElements>},
 }
 
-
+#[derive(Clone)]
 pub enum MonsterAiState {
     Attacking,
     Defend,
@@ -21,6 +25,7 @@ pub enum MonsterAiState {
 
 #[derive(Clone)]
 pub struct Monster {
+    pub id : Uuid,
     pub health : f32,
     pub max_health : f32,
     pub movement : Movement,
@@ -31,63 +36,36 @@ pub struct Monster {
     pub ai : Box<dyn MonsterAi>,
 }
 
-trait MonsterAi{
-    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> MonsterAi; 
-    fn get_state(&self) -> MonsterAiState;
+dyn_clone::clone_trait_object!(MonsterAi);
+
+
+pub trait MonsterAi: DynClone {
+    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension); 
+    fn get_state(&self) -> &MonsterAiState;
 }
 
+#[derive(Clone)]
 struct GhostAi {
     state : MonsterAiState,
 } //you can add extra ai spastic data here like fire blast for dragons.
 
-impl GhostAi for MonsterAi {
-    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) -> MonsterAi {
+impl MonsterAi for GhostAi {
+    fn update_state(&mut self, monster: &Monster, game_dimension: &GameDimension) {
 
 
+    }
+    
+    fn get_state(&self) -> &MonsterAiState {
+        return &self.state;
     }
 }
 
 impl Monster {
-    pub fn tick(&mut self, game_dimension: &mut GameDimension) {
+    pub fn tick(&mut self) {
         //current way this is coded monsters can't change data for other monsters
 
-        let _ = game_dimension;
         let mut rng = rand::thread_rng();
 
-        match &self.current_goal {
-            Goal::WonderTo { location } => {
-                if location.x > self.movement.position.x {
-                    self.movement.velocity.x += 1.0 * self.speed * 0.5;
-                }else if location.x < self.movement.position.x {
-                    self.movement.velocity.x += -1.0 * self.speed * 0.5;
-                }
-
-                if location.y > self.movement.position.y {
-                    self.movement.velocity.y += 1.0 * self.speed * 0.5;
-                }else if location.y < self.movement.position.y {
-                    self.movement.velocity.y += -1.0 * self.speed * 0.5;
-                }
-
-                let wait_time: f32 = rng.gen();
-                if (location.y - self.movement.position.y).abs() + (location.x - self.movement.position.x).abs() < 1.0 {
-                    self.current_goal = Goal::Idle { auto_expire_time: self.tick_age + 20 + (wait_time * 20.0).floor() as u32 }
-                }
-            },
-            Goal::Idle { auto_expire_time } => {
-                
-                if self.tick_age > *auto_expire_time {
-                    let random_x_offset : f32 = rng.gen();
-                    let random_y_offset : f32 = rng.gen();
-    
-                    self.current_goal = Goal::WonderTo { location: Position {
-                        x: self.movement.position.x + ((random_x_offset - 0.5) * 32.0 ),
-                        y: self.movement.position.y + ((random_y_offset - 0.5) * 32.0 ),
-                    } }
-                }
-
-                
-            },
-        }
 
         self.tick_age += 1;
     }
@@ -95,6 +73,13 @@ impl Monster {
 
     pub fn deal_damage(&mut self,damage_type:DamageType) -> () {
         self.health = &self.health.clone() - damage_type.damage;
+    }
+
+    pub fn from_id(monster_hashmap : &HashMap<Uuid, Monster>, id : Uuid) -> Option<&Monster> {
+        return monster_hashmap.get(&id)
+    }
+    pub fn from_id_mut(monster_hashmap : &mut HashMap<Uuid, Monster>, id : Uuid) -> Option<&mut Monster> {
+        return monster_hashmap.get_mut(&id)
     }
 }
 
@@ -115,6 +100,7 @@ impl MonsterType{
 
 pub fn create_monster(monster: MonsterType) -> Monster {
     println!("spawn monster");
+    let mob_id = Uuid::new_v4();
     return match monster {
         MonsterType::Ghost => Monster {
             health: 15.0,
@@ -135,7 +121,8 @@ pub fn create_monster(monster: MonsterType) -> Monster {
             mob_type: MonsterType::Ghost,
             tick_age: 0,
             speed: 0.05,
-            ai: Box::new(GhostAi),
+            ai: Box::new(GhostAi {state : MonsterAiState::Wait}),
+            id: mob_id,
         },
     };
 

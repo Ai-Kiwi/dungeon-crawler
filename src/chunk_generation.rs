@@ -2,9 +2,10 @@
 use noise::core::simplex::simplex_2d;
 use rand::Rng;
 use noise::Vector2;
+use uuid::Uuid;
 
 
-use crate::{entities::{dropped_item::DroppedItem, environmental_object::{self, EnvironmentalObject}}, game_dimension::{Biome, Block, Chunk, GameDimension}, item::{Item, PremadeItem}, physics::Position, player::Player};
+use crate::{entities::{dropped_item::{self, DroppedItem}, environmental_object::{self, EnvironmentalObject}}, game_dimension::{Biome, Block, Chunk, GameDimension}, item::{Item, PremadeItem}, physics::Position, player::Player};
 
 impl GameDimension {
     pub fn tick_chunk_loading(&mut self, player: &Player) {
@@ -124,6 +125,7 @@ impl GameDimension {
                                 x: block_x as f32,
                                 y: block_y as f32,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }
 
@@ -139,6 +141,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }
                 },
@@ -155,6 +158,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }else if chance < 0.15 {
                         environmental_objects.push(EnvironmentalObject{
@@ -163,6 +167,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }else if chance < 0.4 {
                         let rotation: f32 = rng.gen();
@@ -178,6 +183,7 @@ impl GameDimension {
                             },
                             count: 1, 
                             rotation: rotation,
+                            id: Uuid::new_v4(),
                         });
 
                     }
@@ -196,6 +202,7 @@ impl GameDimension {
                                     x: block_x as f32 + offset_environment_item_x,
                                     y: block_y as f32 + offset_environment_item_y,
                                 },
+                                id: Uuid::new_v4(),
                             });
                         }
 
@@ -209,6 +216,7 @@ impl GameDimension {
                                     x: block_x as f32 + offset_environment_item_x,
                                     y: block_y as f32 + offset_environment_item_y,
                                 },
+                                id: Uuid::new_v4(),
                             });
                         }
                     }
@@ -229,6 +237,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }
                 },
@@ -243,6 +252,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }else if chance < 0.2 {
                         let rotation: f32 = rng.gen();
@@ -258,6 +268,7 @@ impl GameDimension {
                             },
                             count: 1, 
                             rotation: rotation,
+                            id: Uuid::new_v4(),
                         });
 
                     }
@@ -275,6 +286,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }else if chance < 0.5{
                         environmental_objects.push(EnvironmentalObject{
@@ -283,6 +295,7 @@ impl GameDimension {
                                 x: block_x as f32 + offset_environment_item_x,
                                 y: block_y as f32 + offset_environment_item_y,
                             },
+                            id: Uuid::new_v4(),
                         });
                     }
                 },
@@ -307,15 +320,30 @@ impl GameDimension {
             i += 1;
         }
 
-        
+        let mut environmental_objects_vec: Vec<Uuid> = Vec::new();
+        let mut dropped_items_vec: Vec<Uuid> = Vec::new();
+
+        for environmental_object in environmental_objects {
+            environmental_objects_vec.push(environmental_object.id);
+            self.environmental_objects.insert(environmental_object.id, environmental_object);
+        }
+        for dropped_item in dropped_items {
+            dropped_items_vec.push(dropped_item.id);
+            self.dropped_items.insert(dropped_item.id, dropped_item);
+        }
+
+
+
+
+
 
         self.chunks.insert((chunk_x,chunk_y), 
         Chunk{
             block_data: chunk_data,
             biome_data : biome_data,
-            environmental_objects: environmental_objects,
+            environmental_objects: environmental_objects_vec,
             monsters : Vec::new(),
-            dropped_items: dropped_items,
+            dropped_items: dropped_items_vec,
         });
     }
 }
