@@ -13,7 +13,7 @@ use std::{cmp::Ordering, f32::consts::PI, time::SystemTime};
 use trig::Trig;
 use assets::Assets;
 use camera::Camera;
-use entities::{environmental_object, monster::MonsterType};
+use entities::{dropped_item::DroppedItem, environmental_object::{self, EnvironmentalObject}, monster::{Monster, MonsterType}};
 use game_dimension::{Block, GameDimension};
 use item::{Item, PremadeItem};
 use player::Player;
@@ -319,7 +319,8 @@ fn main() {
                     
                         let environmental_object_iter = environmental_objects.iter();
                     
-                        for item in environmental_object_iter {
+                        for item_id in environmental_object_iter {
+                            let item = EnvironmentalObject::from_id(&game_dimension.environmental_objects, *item_id).unwrap();
                             match item.object_type {
                                 environmental_object::EnvironmentalObjectType::DeadTree => {
                                     render_buffer.push(RenderBufferItem{
@@ -431,8 +432,8 @@ fn main() {
 
                         let monsters_object_iter = monsters_objects.iter();
 
-                        for monster in monsters_object_iter {
-                            
+                        for monster_id in monsters_object_iter {
+                            let monster = Monster::from_id(&game_dimension.monsters, *monster_id).unwrap();
                             let monster_data = monster;
                             let x_pos = monster_data.movement.position.x;
                             let y_pos = monster_data.movement.position.y;
@@ -465,7 +466,8 @@ fn main() {
 
                         //render items
 
-                        for dropped_item in &chunk.dropped_items {
+                        for dropped_item_id in &chunk.dropped_items {
+                            let dropped_item = DroppedItem::from_id(&game_dimension.dropped_items, *dropped_item_id).unwrap();
                             let texture = get_texture_from_item(&dropped_item.item, &assets);
                             render_buffer.push(RenderBufferItem{
                                 render_position: Position{

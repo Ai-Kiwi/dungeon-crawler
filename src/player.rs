@@ -1,6 +1,6 @@
 use std::{collections::HashMap, f32::consts::PI};
 
-use crate::{entities::{DamageType, Entity}, game_dimension::{get_chunks_in_range, GameDimension}, item::{self, Item}, physics::{Movement, Position, Velocity}, utils::is_within_angle_range};
+use crate::{entities::{monster::Monster, DamageType, Entity}, game_dimension::{get_chunks_in_range, GameDimension}, item::{self, Item}, physics::{Movement, Position, Velocity}, utils::is_within_angle_range};
 
 
 pub struct Player {
@@ -81,14 +81,15 @@ impl Player {
         if attack_damage != 0.0 || attack_reach != 0.0 || attack_angle != 0.0 {
             //values valid so its attacking with hand
             let chunks = get_chunks_in_range(&player_position, attack_reach);
-    
+            let mut mobs_attacked = Vec::new();
             for chunk in chunks.iter() {
                 //let chunks_lock = game_dimension_lock.chunks.read().unwrap();
-                match game_dimension.chunks.get_mut(chunk) {
+                match game_dimension.chunks.get(chunk) {
                     Some(chunk_data) => {
-                        for entity in chunk_data.monsters.iter_mut() { 
-                            if entity.movement.position.distance_to(&player_position) <= attack_reach {
-                                let entity_position = entity.movement.position.clone();
+                        for entity in chunk_data.monsters.iter() { 
+                            let mob_data = Monster::from_id(&game_dimension.monsters, *entity).unwrap();
+                            if mob_data.movement.position.distance_to(&player_position) <= attack_reach {
+                                let entity_position = mob_data.movement.position.clone();
                                 let dx = entity_position.x - player_position.x;
                                 let dy = entity_position.y - player_position.y;
                                 let angle_rad = dy.atan2(dx);
@@ -99,9 +100,7 @@ impl Player {
         
         
                                 if is_within_angle_range(angle_deg, attack_dir, attack_angle) {
-                                    entity.deal_damage(DamageType{
-                                        damage: attack_damage,
-                                    });
+                                    mobs_attacked.push(*entity);
                                 }
                             }
                         }
@@ -111,6 +110,15 @@ impl Player {
                     None => (),
                 }
             }
+
+            for monster in mobs_attacked {
+                Monster::from_id_mut(&mut game_dimension.monsters, monster).unwrap().deal_damage(DamageType{
+                    damage: attack_damage,
+                });
+            }
+
+
+
         }
     }
 
@@ -118,26 +126,29 @@ impl Player {
         static PICKUP_RANGE: f32 = 1.0;
 
         let chunks: Vec<(i32, i32)> = get_chunks_in_range(&self.movement.position, PICKUP_RANGE);
+        let mut dropped_items_testing = Vec::new();
 
         for chunk in chunks {
-            match game_dimension.chunks.get_mut(&chunk) {
+            match game_dimension.chunks.get(&chunk) {
                 Some(chunk_data) => {
-                    chunk_data.dropped_items.retain(|x| {
-                        if x.position.distance_to(&self.movement.position) <= PICKUP_RANGE {
-                            //in range
-                            self.give_item(&x.item,&x.count);
-
-
-                            false
-                        }else{
-                            true
-                        }
-                    });
+                    for item in &chunk_data.dropped_items {
+                        dropped_items_testing.push(*item);
+                    }
                 },
                 None => (),
             }
-            
+        }
 
+        for item_id in dropped_items_testing {
+            let item_data = game_dimension.dropped_items.get(&item_id).unwrap().clone();
+
+            if item_data.position.distance_to(&self.movement.position) <= PICKUP_RANGE {
+                //in range
+                self.give_item(&item_data.item,&item_data.count);
+                game_dimension.dropped_items.remove(&item_id);
+                let chunk_pos = GameDimension::position_to_chunk( &item_data.position  );
+                game_dimension.chunks.get_mut(&chunk_pos).unwrap().dropped_items.retain(|&x| x != item_id);
+            }
         }
 
 

@@ -8,42 +8,29 @@ impl GameDimension {
     pub fn tick_physics(&mut self){
         let mut temp_monsters_moved_chunk: Vec<(Monster,(i32,i32))> = Vec::new();
         {
-            let chunk_iter = self.chunks.iter_mut();
-            for chunk in chunk_iter{
-                let chunk_lock = chunk.1;
-        
-                //tick monsters
-                for monster in &mut chunk_lock.monsters {
-                    monster.movement.tick_movement();
-        
+
+            //tick monsters
+            for monster in &mut self.monsters {
+                let old_pos = monster.1.movement.clone();
+                monster.1.movement.tick_movement();
+
+                //look if gone into unloaded chunks
+                let old_chunk_pos = GameDimension::position_to_chunk(&old_pos.position);
+                let new_chunk_pos = GameDimension::position_to_chunk(&monster.1.movement.position);
+
+                if self.chunks.contains_key(&new_chunk_pos) == false {
+                    println!("{} {}", old_chunk_pos.0, old_chunk_pos.1);
+                    println!("{} {}", new_chunk_pos.0, new_chunk_pos.1);
+                    println!("{}", monster.1.id);
+                    monster.1.movement = old_pos;
+                    println!("mob pressing moved into unloaded chunks, teleported back");
+                    continue;
                 }
-                
-                //remove monster from list that have been deleted
-                chunk_lock.monsters.retain(|monster| {
-                    let new_monster_pos = monster.movement.position.clone(); 
-                    if (new_monster_pos.x / 16.0).floor() as i32 != chunk.0.0 || (new_monster_pos.y / 16.0).floor() as i32 != chunk.0.1 {
-                        //move monster to new chunk
-                        temp_monsters_moved_chunk.push((monster.clone(),chunk.0.clone()));
-                        false
-                    }else{
-                        true
-                    }
-                });
-                    
+                if old_chunk_pos != new_chunk_pos {
+                    self.chunks.get_mut(&old_chunk_pos).unwrap().monsters.retain(|&x| &x != monster.0);
+                    self.chunks.get_mut(&new_chunk_pos).unwrap().monsters.push(*monster.0);
+                }
             }
-        }
-
-        //add monsters which have moved into another chunk
-        for moved_monster in temp_monsters_moved_chunk {
-            match self.chunks.get_mut(&( (moved_monster.0.movement.position.x / 16.0).floor() as i32, (moved_monster.0.movement.position.y / 16.0).floor() as i32 )) {
-                Some(chunk) => {
-                    chunk.monsters.push(moved_monster.0);
-                },
-                None => {
-                    println!("mob walked into unloaded chunk forgetting about")
-                },
-            }
-
         }
     }
 
