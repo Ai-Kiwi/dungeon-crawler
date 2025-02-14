@@ -3,8 +3,9 @@ use std::{collections::HashMap, ops::Deref};
 use rand::{thread_rng, Rng};
 use uuid::Uuid;
 use crate::{game_dimension::{self, GameDimension, MagicElements}, physics::{Movement, Position, Velocity}, player::{self, Player}};
-use super::DamageType;
 use dyn_clone::DynClone;
+
+use super::health::{DamageType, Health};
 
 enum MonsterAttack {
     Melee { reinforced_magic : Option<MagicElements>},
@@ -15,11 +16,12 @@ enum MonsterAttack {
     Special { reinforced_magic : Option<MagicElements>},
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub enum MonsterAiState {
     Attacking,
     Defend,
     Flee,
+    #[default]
     Idle,
     Wonder {wonder_to : Position},
 }
@@ -37,35 +39,55 @@ pub struct Monster {
 }
 
 dyn_clone::clone_trait_object!(MonsterAi);
+#[derive(Clone, Default)]
+struct AttackCooldown {
+    expire_time : u128,
+    length : u128,
+}
+impl AttackCooldown {
+    pub fn reset(&mut self, tick_number : u128) {
+        self.expire_time = tick_number + self.length;
+    }
+    pub fn has_expired(&self, tick_number : u128) -> bool {
+        self.expire_time < tick_number
+    }
+    pub fn new(length : u128) -> Self {
+        Self { expire_time: 0, length: length  }
+    }
+}
 
 
 pub trait MonsterAi: DynClone {
     fn update_state(&mut self, monster: &Monster, player : &mut Player); 
-    fn use_state(&self, monster: Monster, player : &mut Player) -> Monster;
+    fn use_state(&mut self, monster: Monster, player : &mut Player, tick_number : u128) -> Monster;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct GhostAi {
     state : MonsterAiState,
+    basic_attack_cooldown : AttackCooldown,
 } //you can add extra ai spastic data here like fire blast for dragons.
 
 impl MonsterAi for GhostAi {
     fn update_state(&mut self, monster: &Monster, player : &mut Player) {
 
+
         if monster.movement.position.distance_to(&player.movement.position) <= 10.0 {
             self.state = MonsterAiState::Attacking;
             return;
         }
+        
+        match &self.state {
+            MonsterAiState::Wonder { wonder_to } => {
+                if &monster.movement.position.distance_to(&wonder_to) <= &1.0 {
+                    self.state = MonsterAiState::Idle;
+                }
+            },
+            MonsterAiState::Attacking => {
 
-        if monster.movement.position.distance_to(&player.movement.position) >= 15.0 {
-            match &self.state {
-                MonsterAiState::Wonder { wonder_to } => {
-                    if &monster.movement.position.distance_to(&wonder_to) <= &1.0 {
-                        self.state = MonsterAiState::Idle;
-                    }
-                },
-                MonsterAiState::Attacking => {}
-                _ => {
+            }
+            _ => {
+                if monster.movement.position.distance_to(&player.movement.position) >= 15.0 {
                     let offset_x : f32 = rand::thread_rng().gen_range(-10.0..10.0);
                     let offset_y : f32 = rand::thread_rng().gen_range(-10.0..10.0);
                     self.state = MonsterAiState::Wonder {wonder_to : Position {
@@ -74,12 +96,13 @@ impl MonsterAi for GhostAi {
                     }};
                 }
             }
-            return;
         }
+            return;
+        
 
     }    
     
-    fn use_state(&self, monster: Monster, player : &mut Player) -> Monster {
+    fn use_state(&mut self, monster: Monster, player : &mut Player, tick_number : u128) -> Monster {
         let mut monster = monster;
 
         match &self.state {
@@ -89,6 +112,14 @@ impl MonsterAi for GhostAi {
             MonsterAiState::Attacking => {
                 if monster.movement.position.distance_to(&player.movement.position) > 1.0 {
                     monster.movement.apply_force_towards(&player.movement.position, monster.speed);
+                }else{
+                    //in range to attack
+                    if self.basic_attack_cooldown.has_expired(tick_number) {
+                        self.basic_attack_cooldown.reset(tick_number);
+                        player.deal_damage(DamageType{
+                            damage: 5.0,
+                        });
+                    }
                 }
             }
             _ => (),
@@ -100,16 +131,14 @@ impl MonsterAi for GhostAi {
 }
 
 impl Monster {
-    pub fn tick(&mut self, player : &mut Player) {
+    pub fn tick(&mut self, player : &mut Player, tick_number : u128) {
         //current way this is coded monsters can't change data for other monsters
 
         self.ai.update_state(&self.clone(), player);
-        *self = self.ai.use_state(self.clone(), player);
-    }
-
-
-    pub fn deal_damage(&mut self,damage_type:DamageType) -> () {
-        self.health = &self.health.clone() - damage_type.damage;
+        let new_monster = self.ai.use_state(self.clone(), player, tick_number);
+        let old_ai = self.ai.clone();
+        *self = new_monster;
+        self.ai = old_ai;
     }
 
     pub fn from_id(monster_hashmap : &HashMap<Uuid, Monster>, id : Uuid) -> Option<&Monster> {
@@ -157,7 +186,7 @@ pub fn create_monster(monster: MonsterType) -> Monster {
             level: 1,
             mob_type: MonsterType::Ghost,
             speed: 0.05,
-            ai: Box::new(GhostAi {state : MonsterAiState::Idle}),
+            ai: Box::new(GhostAi {state : MonsterAiState::Idle, basic_attack_cooldown: AttackCooldown::new(30) } ),
             id: mob_id,
         },
     };

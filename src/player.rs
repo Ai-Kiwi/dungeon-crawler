@@ -1,6 +1,6 @@
 use std::{collections::HashMap, f32::consts::PI};
 
-use crate::{entities::{monster::Monster, DamageType, Entity}, game_dimension::{get_chunks_in_range, GameDimension}, item::{self, Item}, physics::{Movement, Position, Velocity}, utils::is_within_angle_range};
+use crate::{entities::{health::{DamageType, Health}, monster::Monster, Entity}, game_dimension::{get_chunks_in_range, GameDimension}, item::{self, Item}, physics::{Movement, Position, Velocity}, utils::is_within_angle_range};
 
 
 pub struct Player {
@@ -125,6 +125,10 @@ impl Player {
         }
     }
 
+    pub fn tick(&mut self) {
+        self.regen();
+    }
+
     pub fn pickup_items(&mut self, game_dimension : &mut GameDimension) {
         static PICKUP_RANGE: f32 = 1.0;
 
@@ -164,5 +168,6 @@ impl Player {
             None => self.inventory.insert(item.clone(), *count),
         }; 
     }
+
 }
 

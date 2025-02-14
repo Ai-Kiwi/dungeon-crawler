@@ -17,7 +17,7 @@ use entities::{dropped_item::DroppedItem, environmental_object::{self, Environme
 use game_dimension::{Block, GameDimension};
 use item::{Item, PremadeItem};
 use player::Player;
-use raylib::{color::Color, ffi::{KeyboardKey, MouseButton}, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}};
+use raylib::{color::Color, ffi::{KeyboardKey, MouseButton, Rectangle}, math::Vector2, prelude::{RaylibDraw, RaylibDrawHandle}};
 use physics::Position;
 use raylib::prelude::Texture2D;
 
@@ -142,10 +142,11 @@ fn main() {
 
         //update tick stuff
         while time_now.elapsed().unwrap().as_millis() * 60 / 1000 > game_dimension.tick_number {
+            player.tick();
             player.handle_movement();
-            game_dimension.tick_physics();
             game_dimension.tick_chunk_loading(&mut player);
             game_dimension.background_tick(&mut player);
+            game_dimension.tick_physics();
             game_dimension.tick_number = game_dimension.tick_number + 1;
         }
         //later threads to possibly add
@@ -467,23 +468,30 @@ fn main() {
                         //render items
 
                         for dropped_item_id in &chunk.dropped_items {
-                            let dropped_item = DroppedItem::from_id(&game_dimension.dropped_items, *dropped_item_id).unwrap();
-                            let texture = get_texture_from_item(&dropped_item.item, &assets);
-                            render_buffer.push(RenderBufferItem{
-                                render_position: Position{
-                                    x: camera.convert_x_pos_to_screen(&dropped_item.position.x, &1.0, dropped_item.rotation),
-                                    y: camera.convert_y_pos_to_screen(&dropped_item.position.y, &1.0, dropped_item.rotation),
+                            match DroppedItem::from_id(&game_dimension.dropped_items, *dropped_item_id) {
+                                Some(item) => {
+                                    let texture = get_texture_from_item(&item.item, &assets);
+                                    render_buffer.push(RenderBufferItem{
+                                        render_position: Position{
+                                            x: camera.convert_x_pos_to_screen(&item.position.x, &1.0, item.rotation),
+                                            y: camera.convert_y_pos_to_screen(&item.position.y, &1.0, item.rotation),
+                                        },
+                                        render_asset: texture,
+                                        real_position: Position{
+                                            x: item.position.x,
+                                            y: item.position.y,
+                                        },
+                                        render_width: 1.0 / camera.zoom,
+                                        render_rotation: item.rotation,
+                                        health_bar_buffer_info: None,
+                                        layer: 3,
+                                    });
                                 },
-                                render_asset: texture,
-                                real_position: Position{
-                                    x: dropped_item.position.x,
-                                    y: dropped_item.position.y,
+                                None => {
+                                    println!("failed to render dropped item, doesn't exist. possibly was meant to be deleted from chunk but wasn't")
                                 },
-                                render_width: 1.0 / camera.zoom,
-                                render_rotation: dropped_item.rotation,
-                                health_bar_buffer_info: None,
-                                layer: 3,
-                            });
+                            };
+                            
                         }
 
 
@@ -716,7 +724,25 @@ fn main() {
             render_item_slot(&mut d, &assets, (camera.screen_width - 69) as f32, (camera.screen_height - 69) as f32, &off_hand, &offhand_amount, false, 64.0, item_padding);
             //make sure they still have the item in their inventory, otherwise remove it
 
-
+            //draw player health bar
+            d.draw_rectangle_rounded( Rectangle {
+                x: 8.0 + 5.0,
+                y: (camera.screen_height - 80) as f32,
+                width: 500.0,
+                height: 15.0,
+            },
+            15.0,
+            0,
+            Color::BLACK);
+            d.draw_rectangle_rounded( Rectangle {
+                x: 8.0 + 5.0 + 2.5,
+                y: (camera.screen_height - 80) as f32 + 2.5,
+                width: (500.0 - 5.0) * (player.health / player.max_health),
+                height: 15.0 - 5.0,
+            },
+            15.0,
+            0,
+            Color::RED);
 
 
 
