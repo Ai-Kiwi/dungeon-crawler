@@ -139,7 +139,6 @@ impl GameDimension {
                         let mut monster = create_monster(chance.mob);
                         monster.movement.position.x = spawn_loc_x as f32 + 0.5;
                         monster.movement.position.y = spawn_loc_y as f32+ 0.5;
-                        println!("{}", nearby_count);
                         //spawn in the mob
                         self.chunks.get_mut(&chunk).unwrap().monsters.push(monster.id);
                         self.monsters.insert(monster.id, monster);
