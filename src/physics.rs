@@ -19,12 +19,8 @@ impl GameDimension {
                 let new_chunk_pos = GameDimension::position_to_chunk(&monster.1.movement.position);
 
                 if self.chunks.contains_key(&new_chunk_pos) == false {
-                    println!("{} {}", old_chunk_pos.0, old_chunk_pos.1);
-                    println!("{} {}", new_chunk_pos.0, new_chunk_pos.1);
-                    println!("{}", monster.1.id);
-                    println!("{} {}",monster.1.movement.position.x,monster.1.movement.position.y);
+                    println!("monster moved out of bounds, teleported back in {}", monster.1.id);
                     monster.1.movement.position = old_movement_pos;
-                    println!("{} {}",monster.1.movement.position.x,monster.1.movement.position.y);
                     println!("mob pressing moved into unloaded chunks, teleported back");
                     continue;
                 }
