@@ -68,6 +68,13 @@ impl Movement {
         self.velocity.x = self.velocity.x * self.drag;
         self.velocity.y = self.velocity.y * self.drag;
     }
+    pub fn apply_force_towards(&mut self, target: &Position, force: f32) {
+        let size_x = target.x - self.position.x;
+        let size_y = target.y - self.position.y;
+        let size = ((size_x * size_x) + (size_y * size_y)).sqrt();
+        self.velocity.x += self.velocity.x +((size_x / size) * force);
+        self.velocity.y +=self.velocity.y + ((size_y / size) * force);
+    }
 }
 
 #[derive(Clone)]
@@ -80,6 +87,12 @@ impl Velocity {
         Velocity { 
             x: 0.0, 
             y: 0.0 
+        }
+    }
+    fn add(self, other: &Velocity) -> Velocity {
+        Velocity {
+            x: self.x + other.x,
+            y: self.y + other.y,
         }
     }
 }

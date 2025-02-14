@@ -25,6 +25,10 @@ pub struct Assets {
     pub jungle_tree: Texture2D,
 }
 
+const IMAGE_BYTES: &[u8] = include_bytes!("../assets/apple_tree.png");
+
+
+
 impl Assets {
     pub fn load(rl: &mut RaylibHandle, thread : &RaylibThread) -> Self {
         Assets {
