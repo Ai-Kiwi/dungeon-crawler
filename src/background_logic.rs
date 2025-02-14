@@ -37,7 +37,6 @@ impl GameDimension {
 
     pub fn tick_mob_spawning(&mut self, player: &mut Player){
         //test if it has been 60 ticks, so only runs every second
-        println!("running mob spawns");
         
         //todo mob spawning it picks a random block in the chunk then seees if it is safe to spawn there if it is it does it.
         //this approach has some problems but is what currently works
