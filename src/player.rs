@@ -13,6 +13,8 @@ pub struct Player {
     pub hotbar: [Option<Item>; 9],
     pub main_hand: Option<Item>,
     pub off_hand: Option<Item>,
+    pub health: f32,
+    pub max_health: f32,
 }
 
 impl Player {
@@ -37,6 +39,8 @@ impl Player {
             hotbar: [const { None }; 9],
             main_hand: None,
             off_hand: None,
+            health: 100.0,
+            max_health: 100.0,
         }
     }
 
@@ -89,15 +93,14 @@ impl Player {
                         for entity in chunk_data.monsters.iter() { 
                             let mob_data = Monster::from_id(&game_dimension.monsters, *entity).unwrap();
                             if mob_data.movement.position.distance_to(&player_position) <= attack_reach {
+                                
                                 let entity_position = mob_data.movement.position.clone();
                                 let dx = entity_position.x - player_position.x;
                                 let dy = entity_position.y - player_position.y;
-                                let angle_rad = dy.atan2(dx);
-                                let mut angle_deg = angle_rad * 180.0 / PI;
+                                let mut angle_deg = -dy.atan2(dx).to_degrees();
                                 if angle_deg < 0.0 {
                                     angle_deg += 360.0; // adjust negative angles to positive
                                 }
-        
         
                                 if is_within_angle_range(angle_deg, attack_dir, attack_angle) {
                                     mobs_attacked.push(*entity);
