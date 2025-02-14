@@ -17,7 +17,7 @@ impl GameDimension {
         let mut monsters_to_delete = Vec::new();
 
         for monster in  &mut self.monsters {
-            monster.1.tick();
+            monster.1.tick(player);
             if monster.1.health <= 0.0 {
                 monsters_to_delete.push(*monster.0);
             }
