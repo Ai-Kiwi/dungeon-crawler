@@ -165,7 +165,6 @@ impl MonsterType{
 }
 
 pub fn create_monster(monster: MonsterType) -> Monster {
-    println!("spawn monster");
     let mob_id = Uuid::new_v4();
     return match monster {
         MonsterType::Ghost => Monster {
