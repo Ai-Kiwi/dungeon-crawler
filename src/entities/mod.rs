@@ -10,10 +10,7 @@ pub mod npc;
 pub mod projectile;
 pub mod environmental_object;
 pub mod dropped_item;
-
-pub struct DamageType {
-    pub damage : f32,
-}
+pub mod health;
 
 pub trait Entity {
     fn position(&self) -> Position;

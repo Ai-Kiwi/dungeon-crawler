@@ -109,9 +109,9 @@ impl GameDimension {
             }
             
             let offset_environment_item_x: f32 = rng.gen();
-            let offset_environment_item_x = (offset_environment_item_x - 0.5) * 0.99;
+            let offset_environment_item_x = offset_environment_item_x * 0.99;
             let offset_environment_item_y: f32 = rng.gen();
-            let offset_environment_item_y = (offset_environment_item_y - 0.5) * 0.99;
+            let offset_environment_item_y = offset_environment_item_y * 0.99;
 
             match biome {
                 Biome::Plains => {
