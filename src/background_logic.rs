@@ -24,9 +24,9 @@ impl GameDimension {
         }
 
         for monster in monsters_to_delete {
-            self.monsters.remove(&monster);
             let chunk_pos = GameDimension::position_to_chunk( &self.monsters.get(&monster).unwrap().movement.position  );
             self.chunks.get_mut(&chunk_pos).unwrap().monsters.retain(|&x| x != monster);
+            self.monsters.remove(&monster);
         }
 
         //handle if to tick mob spawns
