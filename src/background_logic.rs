@@ -69,7 +69,7 @@ impl GameDimension {
                         mob: MonsterType::Ghost,
                         chance: 0.05,
                         spawn_radius: 128.0,
-                        max_spawns_per_radius: 3,
+                        max_spawns_per_radius: 2,
                     });
                 },
                 game_dimension::Biome::Desert => {
@@ -77,7 +77,7 @@ impl GameDimension {
                         mob: MonsterType::Ghost,
                         chance: 0.05,
                         spawn_radius: 128.0,
-                        max_spawns_per_radius: 3,
+                        max_spawns_per_radius: 1,
                     });
                 },
                 game_dimension::Biome::SeasonalForest => (),
@@ -86,7 +86,7 @@ impl GameDimension {
                         mob: MonsterType::Ghost,
                         chance: 0.05,
                         spawn_radius: 128.0,
-                        max_spawns_per_radius: 9,
+                        max_spawns_per_radius: 6,
                     });
                 },
                 game_dimension::Biome::Swamp => (),
@@ -96,7 +96,7 @@ impl GameDimension {
                         mob: MonsterType::Ghost,
                         chance: 0.05,
                         spawn_radius: 128.0,
-                        max_spawns_per_radius: 3,
+                        max_spawns_per_radius: 2,
                     });
                 },
                 game_dimension::Biome::TropicalJungle => (),
