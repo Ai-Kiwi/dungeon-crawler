@@ -11,18 +11,20 @@ impl GameDimension {
 
             //tick monsters
             for monster in &mut self.monsters {
-                let old_pos = monster.1.movement.clone();
+                let old_movement_pos = monster.1.movement.position.clone();
                 monster.1.movement.tick_movement();
 
                 //look if gone into unloaded chunks
-                let old_chunk_pos = GameDimension::position_to_chunk(&old_pos.position);
+                let old_chunk_pos = GameDimension::position_to_chunk(&old_movement_pos);
                 let new_chunk_pos = GameDimension::position_to_chunk(&monster.1.movement.position);
 
                 if self.chunks.contains_key(&new_chunk_pos) == false {
                     println!("{} {}", old_chunk_pos.0, old_chunk_pos.1);
                     println!("{} {}", new_chunk_pos.0, new_chunk_pos.1);
                     println!("{}", monster.1.id);
-                    monster.1.movement = old_pos;
+                    println!("{} {}",monster.1.movement.position.x,monster.1.movement.position.y);
+                    monster.1.movement.position = old_movement_pos;
+                    println!("{} {}",monster.1.movement.position.x,monster.1.movement.position.y);
                     println!("mob pressing moved into unloaded chunks, teleported back");
                     continue;
                 }
