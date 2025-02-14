@@ -24,6 +24,7 @@ use raylib::prelude::Texture2D;
 //cargo build --target x86_64-pc-windows-gnu --release
 
 const GAME_TITLE: &str = "kiwi crawler pre release build";
+pub const RENDER_DISTANCE: i32 = 32;
 pub const TPS: u128 = 60;// / 30;
 
 struct RenderBufferItem<'a> {
@@ -276,10 +277,9 @@ fn main() {
                     if let Some(chunk) = game_dimension.chunks.get(&(chunk_x, chunk_y)) {
                         let chunk_data = chunk;
                         let block_data = chunk_data.block_data.clone();
-                        let environmental_objects = &chunk_data.environmental_objects;
-                    
+                        
                         let mut i=0;
-                    
+                        
                         for y in (0+(chunk_y*16))..(16+(chunk_y*16)){
                             for x in (0+(chunk_x*16))..(16+(chunk_x*16)){
                                 let block = &block_data[i];
@@ -298,7 +298,7 @@ fn main() {
                                     Block::SwampWater => &assets.swamp_water,
                                     Block::SnowyGrass => &assets.snowy_grass,
                                 };
-                                                            
+                                
                                 render_buffer.push(RenderBufferItem{
                                     render_position: Position{
                                         x: camera.convert_x_pos_to_screen(&(x as f32 + 0.5), &1.0, 0.0),
@@ -317,9 +317,10 @@ fn main() {
                                 i = i + 1;
                             }
                         }
-                    
+                        
+                        let environmental_objects = &chunk_data.environmental_objects;
                         let environmental_object_iter = environmental_objects.iter();
-                    
+
                         for item_id in environmental_object_iter {
                             let item = EnvironmentalObject::from_id(&game_dimension.environmental_objects, *item_id).unwrap();
                             match item.object_type {
@@ -429,9 +430,7 @@ fn main() {
                         }
 
                         let monsters_objects = &chunk_data.monsters;
-
-
-                        let monsters_object_iter = monsters_objects.iter();
+                        let mut monsters_object_iter = monsters_objects.iter();
 
                         for monster_id in monsters_object_iter {
                             let monster = Monster::from_id(&game_dimension.monsters, *monster_id).unwrap();
@@ -491,7 +490,7 @@ fn main() {
                                     println!("failed to render dropped item, doesn't exist. possibly was meant to be deleted from chunk but wasn't")
                                 },
                             };
-                            
+
                         }
 
 

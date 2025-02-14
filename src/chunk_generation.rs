@@ -5,7 +5,7 @@ use noise::Vector2;
 use uuid::Uuid;
 
 
-use crate::{entities::{dropped_item::{self, DroppedItem}, environmental_object::{self, EnvironmentalObject}}, game_dimension::{Biome, Block, Chunk, GameDimension}, item::{Item, PremadeItem}, physics::Position, player::Player};
+use crate::{entities::{dropped_item::{self, DroppedItem}, environmental_object::{self, EnvironmentalObject}}, game_dimension::{Biome, Block, Chunk, GameDimension}, item::{Item, PremadeItem}, physics::Position, player::Player, RENDER_DISTANCE};
 
 impl GameDimension {
     pub fn tick_chunk_loading(&mut self, player: &Player) {
@@ -14,8 +14,8 @@ impl GameDimension {
             let player_pos: Position = player.movement.position.clone();
             let mut chunks_to_create: Vec<(i32,i32)> = Vec::new();
 
-            for chunk_x in (((player_pos.x / 16.0) - 16.0) as i32)..(((player_pos.x / 16.0) + 16.0) as i32){
-                for chunk_y in (((player_pos.y / 16.0) - 16.0) as i32 )..(((player_pos.y / 16.0) + 16.0) as i32){
+            for chunk_x in (((player_pos.x / 16.0) - (RENDER_DISTANCE as f32)) as i32)..(((player_pos.x / 16.0) + (RENDER_DISTANCE as f32)) as i32){
+                for chunk_y in (((player_pos.y / 16.0) - (RENDER_DISTANCE as f32)) as i32 )..(((player_pos.y / 16.0) + (RENDER_DISTANCE as f32)) as i32){
                     if self.chunks.get(&(chunk_x,chunk_y)).is_some() == false {
                         chunks_to_create.push((chunk_x,chunk_y));
                     }
@@ -26,6 +26,7 @@ impl GameDimension {
         };
         
         for chunk in chunks_to_create {
+            //println!("{}x{}",chunk.0,chunk.1);
             self.load_chunk(chunk.0,chunk.1);
         }
 
