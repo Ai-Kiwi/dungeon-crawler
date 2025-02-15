@@ -7,7 +7,7 @@ pub struct Player {
     pub movement : Movement,
     pub speed: f32,
     pub walk_dir: (i8,i8),
-    pub interact_direction : f32,
+    pub facing : f32,
     //approach allows for there to be infinite items in the game held by the player
     pub inventory: HashMap<Item, u32>,
     pub hotbar: [Option<Item>; 9],
@@ -34,7 +34,7 @@ impl Player {
             },
             speed: 0.075,
             walk_dir: (0,0),
-            interact_direction: 0.0,
+            facing: 0.0,
             inventory: HashMap::new(),
             hotbar: [const { None }; 9],
             main_hand: None,
@@ -46,7 +46,7 @@ impl Player {
 
     pub fn right_hand_attack(&mut self, game_dimension : &mut GameDimension) {
         let player_position = self.movement.position.clone();
-        let attack_dir = self.interact_direction;
+        let attack_dir = self.facing;
         let player_hand = self.main_hand.clone();
     
     

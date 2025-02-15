@@ -21,6 +21,7 @@ impl GameDimension {
                 if self.chunks.contains_key(&new_chunk_pos) == false {
                     println!("monster moved out of bounds, teleported back in {}", monster.1.id);
                     monster.1.movement.position = old_movement_pos;
+                    monster.1.movement.velocity = Velocity::new();
                     continue;
                 }
                 if old_chunk_pos != new_chunk_pos {
