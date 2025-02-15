@@ -161,11 +161,6 @@ fn main() {
 
         //draw the ui
         {
-            d.draw_text(GAME_TITLE, 5, 5, 15, Color::PURPLE);
-            d.draw_text(&(d.get_fps().to_string().as_str()), 5, 20, 15, Color::PURPLE);
-            d.draw_text(&(player.movement.position.x.to_string().as_str()), 5, 35, 15, Color::PURPLE);
-            d.draw_text(&(player.movement.position.y.to_string().as_str()), 5, 50, 15, Color::PURPLE);
-
             d.draw_text("W,A,S,D : Used for moving", 5, 80, 15, Color::PURPLE);
             d.draw_text("I : open inventory", 5, 95, 15, Color::PURPLE);
             d.draw_text("P : pickup items", 5, 110, 15, Color::PURPLE);
