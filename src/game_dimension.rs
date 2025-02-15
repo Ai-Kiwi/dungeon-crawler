@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 
 use noise::permutationtable::PermutationTable;
 use rand::Rng;

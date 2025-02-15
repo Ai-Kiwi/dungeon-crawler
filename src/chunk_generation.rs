@@ -5,7 +5,7 @@ use noise::Vector2;
 use uuid::Uuid;
 
 
-use crate::{entities::{dropped_item::{self, DroppedItem}, environmental_object::{self, EnvironmentalObject}}, game_dimension::{Biome, Block, Chunk, GameDimension}, item::{Item, PremadeItem}, physics::Position, player::Player, RENDER_DISTANCE};
+use crate::{entities::{dropped_item::DroppedItem, environmental_object::{self, EnvironmentalObject}}, game_dimension::{Biome, Block, Chunk, GameDimension}, item::{Item, PremadeItem}, physics::Position, player::Player, RENDER_DISTANCE};
 
 impl GameDimension {
     pub fn tick_chunk_loading(&mut self, player: &Player) {
