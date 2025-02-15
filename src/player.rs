@@ -5,7 +5,6 @@ use crate::{entities::{health::{DamageType, Health}, monster::Monster, Entity}, 
 
 pub struct Player {
     pub movement : Movement,
-    pub speed: f32,
     pub walk_dir: (i8,i8),
     pub facing : f32,
     //approach allows for there to be infinite items in the game held by the player
@@ -14,7 +13,19 @@ pub struct Player {
     pub main_hand: Option<Item>,
     pub off_hand: Option<Item>,
     pub health: f32,
+    pub attack_cooldown : (u128, u128),
+    pub level : u64,
+    pub xp : u64,
+    pub xp_to_level_up : u64,
+    pub stats : PlayerStats,
+}
+
+pub struct PlayerStats {
     pub max_health: f32,
+    pub attack_damage: f32,
+    pub speed: f32,
+    pub resistance: f32, //slight damage absorbing, not times but minus based
+    pub shielding: f32, //a bar which recovers that acts as another health meter, 
 }
 
 impl Player {
@@ -32,7 +43,6 @@ impl Player {
                 drag: 0.1,
                 mass: 15.0,
             },
-            speed: 0.075,
             walk_dir: (0,0),
             facing: 0.0,
             inventory: HashMap::new(),
@@ -40,7 +50,29 @@ impl Player {
             main_hand: None,
             off_hand: None,
             health: 100.0,
-            max_health: 100.0,
+            level: 1,
+            xp: 0,
+            xp_to_level_up: 100,
+            attack_cooldown: (0,0),
+            stats: PlayerStats {
+                max_health: 100.0,
+                attack_damage: 20.0,
+                speed: 0.075,
+                resistance: 0.0,
+                shielding: 0.0,
+            },
+        }
+    }
+
+    pub fn gain_xp(&mut self,amount: u64) {
+        self.xp += amount;
+        if self.xp >= self.xp_to_level_up {
+            self.level += 1;
+            self.xp = self.xp - self.xp_to_level_up;
+            self.xp_to_level_up = (100.0 * (self.level as f32).powf(1.2) ) as u64
+            //stat boost the level up.
+
+
         }
     }
 
@@ -50,15 +82,16 @@ impl Player {
         let player_hand = self.main_hand.clone();
     
     
-        let (attack_damage, attack_reach, attack_angle) = match player_hand {
+        let (weapon_attack_damage, attack_reach, attack_angle, attack_cooldown) = match player_hand {
             Some(item_hand) => {
-                let damage = item_hand.item.info().attributes.damage;
+                let weapon_attack_damage = item_hand.item.info().attributes.damage;
                 let attack_distance = item_hand.item.info().attributes.attack_distance;
                 let swing_distance = item_hand.item.info().attributes.swing_distance;
+                let attack_cooldown = item_hand.item.info().attributes.attack_cooldown;
     
-                let damage = match damage {
-                    Some(damage) => {
-                        damage
+                let weapon_attack_damage = match weapon_attack_damage {
+                    Some(weapon_attack_damage) => {
+                        weapon_attack_damage
                     }
                     None => 0.0,   
                 };
@@ -74,15 +107,25 @@ impl Player {
                     }
                     None => 0.0,   
                 };
+                let attack_cooldown = match attack_cooldown {
+                    Some(attack_cooldown) => {
+                        attack_cooldown
+                    }
+                    None => 0,
+                };
     
-                (damage, attack_distance, swing_distance)
+                (weapon_attack_damage, attack_distance, swing_distance, attack_cooldown)
             },
             None => {
-                (0.0, 0.0, 0.0)
+                (0.0, 0.0, 0.0, 0)
             },
         };
+
+        if self.attack_cooldown.1 > game_dimension.tick_number {
+            return;
+        }
     
-        if attack_damage != 0.0 || attack_reach != 0.0 || attack_angle != 0.0 {
+        if weapon_attack_damage != 0.0 || attack_reach != 0.0 || attack_angle != 0.0 {
             //values valid so its attacking with hand
             let chunks = get_chunks_in_range(&player_position, attack_reach);
             let mut mobs_attacked = Vec::new();
@@ -116,11 +159,12 @@ impl Player {
 
             for monster in mobs_attacked {
                 Monster::from_id_mut(&mut game_dimension.monsters, monster).unwrap().deal_damage(DamageType{
-                    damage: attack_damage,
-                });
+                    damage: weapon_attack_damage + self.stats.attack_damage, //add weapon and player damage
+                },true);
+                println!("{} {} {}",weapon_attack_damage + self.stats.attack_damage, weapon_attack_damage,self.stats.attack_damage)
             }
 
-
+            self.attack_cooldown = (game_dimension.tick_number, game_dimension.tick_number + attack_cooldown as u128)
 
         }
     }

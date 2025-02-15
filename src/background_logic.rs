@@ -24,6 +24,13 @@ impl GameDimension {
         }
 
         for monster in monsters_to_delete {
+            //give xp if player kill
+            let monster_data = self.monsters.get(&monster).unwrap();
+            if monster_data.player_damaged {
+                let xp_to_give = 20.0 * (monster_data.level as f32).powf(1.2);
+                player.gain_xp(xp_to_give as u64);
+            }
+            
             let chunk_pos = GameDimension::position_to_chunk( &self.monsters.get(&monster).unwrap().movement.position  );
             self.chunks.get_mut(&chunk_pos).unwrap().monsters.retain(|&x| x != monster);
             self.monsters.remove(&monster);
@@ -135,7 +142,7 @@ impl GameDimension {
 
 
                     if nearby_count < chance.max_spawns_per_radius && player.movement.position.distance_to(&Position{x:spawn_loc_x as f32, y: spawn_loc_y as f32}) >= 50.0 {
-                        let mut monster = create_monster(chance.mob);
+                        let mut monster = create_monster(chance.mob,1);
                         monster.movement.position.x = spawn_loc_x as f32 + 0.5;
                         monster.movement.position.y = spawn_loc_y as f32+ 0.5;
                         //spawn in the mob

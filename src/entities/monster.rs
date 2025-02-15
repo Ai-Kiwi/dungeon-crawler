@@ -31,11 +31,13 @@ pub struct Monster {
     pub id : Uuid,
     pub health : f32,
     pub max_health : f32,
+    pub damage : f32,
     pub movement : Movement,
     pub level : u32,
     pub mob_type: MonsterType,
     pub speed : f32,
     pub ai : Box<dyn MonsterAi>,
+    pub player_damaged : bool,
 }
 
 dyn_clone::clone_trait_object!(MonsterAi);
@@ -112,14 +114,16 @@ impl MonsterAi for GhostAi {
             MonsterAiState::Attacking => {
                 if monster.movement.position.distance_to(&player.movement.position) > 1.0 {
                     monster.movement.apply_force_towards(&player.movement.position, monster.speed);
-                }else{
-                    //in range to attack
-                    if self.basic_attack_cooldown.has_expired(tick_number) {
-                        self.basic_attack_cooldown.reset(tick_number);
-                        player.deal_damage(DamageType{
-                            damage: 5.0,
-                        });
-                    }
+                }
+
+                if monster.movement.position.distance_to(&player.movement.position) < 1.5 {
+                        //in range to attack
+                        if self.basic_attack_cooldown.has_expired(tick_number) {
+                            self.basic_attack_cooldown.reset(tick_number);
+                            player.deal_damage(DamageType{
+                                damage: monster.damage,
+                            },false);
+                        }
                 }
             }
             _ => (),
@@ -164,12 +168,16 @@ impl MonsterType{
     }
 }
 
-pub fn create_monster(monster: MonsterType) -> Monster {
+pub fn create_monster(monster: MonsterType, level : u64) -> Monster {
     let mob_id = Uuid::new_v4();
+    let damage = 20.0 * (level as f32).powf(1.2);
+    let health = 100.0 * (level as f32).powf(1.2);
+    let speed = 0.075;
     return match monster {
         MonsterType::Ghost => Monster {
-            health: 15.0,
-            max_health: 15.0,
+            health: health,
+            max_health: health,
+            damage: damage,
             movement: Movement {
                 velocity: Velocity {
                     x: 0.0,
@@ -184,9 +192,10 @@ pub fn create_monster(monster: MonsterType) -> Monster {
             },
             level: 1,
             mob_type: MonsterType::Ghost,
-            speed: 0.05,
+            speed: 0.075,
             ai: Box::new(GhostAi {state : MonsterAiState::Idle, basic_attack_cooldown: AttackCooldown::new(30) } ),
             id: mob_id,
+            player_damaged : false,
         },
     };
 

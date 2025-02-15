@@ -1,6 +1,6 @@
 use raylib::{color::Color, ffi::Rectangle, prelude::{RaylibDraw, RaylibDrawHandle}};
 
-use crate::{assets::Assets, game_dimension::GameDimension, item, player::Player, render::{camera::Camera, render_utils::{clickable_item_slot, ClickableItemSlotAction}, MouseInfo, RenderBufferItem}};
+use crate::{assets::Assets, game_dimension::GameDimension, item, player::{self, Player}, render::{camera::Camera, render_utils::{clickable_item_slot, ClickableItemSlotAction}, MouseInfo, RenderBufferItem}};
 
 use super::GuiPagesInfo;
 
@@ -131,11 +131,22 @@ pub fn render_hotbar(render_buffer : &mut Vec<RenderBufferItem>, player : &mut P
     clickable_item_slot(d, &assets, (camera.screen_width - 69) as f32, (camera.screen_height - 69 - 64 - 5) as f32, &main_hand, &main_hand_amount, false, 64.0, item_padding, ClickableItemSlotAction::None, gui_pages_info, player);
     clickable_item_slot(d, &assets, (camera.screen_width - 69) as f32, (camera.screen_height - 69) as f32, &off_hand, &offhand_amount, false, 64.0, item_padding, ClickableItemSlotAction::None, gui_pages_info, player);
     //make sure they still have the item in their inventory, otherwise remove it
+    
+    //draw bars
+    draw_meter(d,8.0, (camera.screen_height - 80) as f32, 500.0, 15.0, (player.health / player.stats.max_health), Color::RED);
+    if player.attack_cooldown.1 > game_dimension.tick_number {
+        draw_meter(d,8.0, (camera.screen_height - 100) as f32, 500.0, 15.0, (game_dimension.tick_number - player.attack_cooldown.0) as f32 / (player.attack_cooldown.1 - player.attack_cooldown.0) as f32, Color::WHITE);
+    }
+    draw_meter(d,8.0, 8.0 as f32, 500.0, 15.0, player.xp as f32 / player.xp_to_level_up as f32, Color::LIGHTBLUE);
+    d.draw_text(&format!("Level : {}", player.level), 8, 25, 25, Color::BLACK);
 
-    //draw player health bar
+}
+
+
+pub fn draw_meter(d: &mut RaylibDrawHandle,x: f32,y: f32,width: f32,height: f32,full_percent:f32,color: Color) {
     d.draw_rectangle_rounded( Rectangle {
-        x: 8.0 + 5.0,
-        y: (camera.screen_height - 80) as f32,
+        x: x,
+        y: y as f32,
         width: 500.0,
         height: 15.0,
     },
@@ -143,13 +154,13 @@ pub fn render_hotbar(render_buffer : &mut Vec<RenderBufferItem>, player : &mut P
     0,
     Color::BLACK);
     d.draw_rectangle_rounded( Rectangle {
-        x: 8.0 + 5.0 + 2.5,
-        y: (camera.screen_height - 80) as f32 + 2.5,
-        width: (500.0 - 5.0) * (player.health / player.max_health),
+        x: x + (height / 6.0),
+        y: y + (height / 6.0),
+        width: (width - (height / 3.0)) * full_percent,
         height: 15.0 - 5.0,
     },
     15.0,
     0,
-    Color::RED);
+    color);
 
 }

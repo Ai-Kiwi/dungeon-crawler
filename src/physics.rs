@@ -19,7 +19,7 @@ impl GameDimension {
                 let new_chunk_pos = GameDimension::position_to_chunk(&monster.1.movement.position);
 
                 if self.chunks.contains_key(&new_chunk_pos) == false {
-                    println!("monster moved out of bounds, teleported back in {}", monster.1.id);
+                    //println!("monster moved out of bounds, teleported back in {}", monster.1.id);
                     monster.1.movement.position = old_movement_pos;
                     monster.1.movement.velocity = Velocity::new();
                     continue;
@@ -37,7 +37,7 @@ impl GameDimension {
 impl Player {
     pub fn handle_movement(&mut self) {
         let player_walk_dir: (i8, i8) = self.walk_dir;
-        let player_speed = self.speed;
+        let player_speed = self.stats.speed;
     
         if player_walk_dir.0 != 0{
             self.movement.velocity.x += player_walk_dir.0 as f32 * player_speed;
