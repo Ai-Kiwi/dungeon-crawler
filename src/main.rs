@@ -141,6 +141,10 @@ fn main() {
             gui_info.inventory_open = !gui_info.inventory_open;
             gui_info.inventory_scroll_offset = 0;
         }
+
+        if rl.is_key_pressed(KeyboardKey::KEY_Q) {
+            gui_info.side_menu_open = !gui_info.side_menu_open;
+        }
         
         //make camera follow player
         camera.screen_height = rl.get_screen_height() as u32;
