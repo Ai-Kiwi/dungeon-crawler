@@ -18,7 +18,7 @@ pub fn render_inventory(gui_pages_info: &mut GuiPagesInfo, player: &mut Player, 
             let col = inventory_slot_index % INVENTORY_SLOTS_PER_ROW;
         
             let render_x = INVENTORY_PADDING + (col as f32 * (INVENTORY_SLOT_SIZE + INVENTORY_PADDING));
-            let render_y = INVENTORY_PADDING + (row as f32 * (INVENTORY_SLOT_SIZE + INVENTORY_PADDING));
+            let render_y = INVENTORY_PADDING + (row as f32 * (INVENTORY_SLOT_SIZE + INVENTORY_PADDING)) + 50.0;
         
             if render_y > camera.screen_height as f32 - 100.0 {
                 break;
