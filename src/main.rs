@@ -157,21 +157,6 @@ fn main() {
         let mut d = rl.begin_drawing(&thread);
 
         main_render(&mut d, &game_dimension, &mut player, &camera, &assets, &mut gui_info);
-    
-
-        //draw the ui
-        {
-            d.draw_text("W,A,S,D : Used for moving", 5, 80, 15, Color::PURPLE);
-            d.draw_text("I : open inventory", 5, 95, 15, Color::PURPLE);
-            d.draw_text("P : pickup items", 5, 110, 15, Color::PURPLE);
-            d.draw_text("TAB : swap current item between off hand and main", 5, 125, 15, Color::PURPLE);
-            d.draw_text("alt + scroll : zoom in/out", 5, 140, 15, Color::PURPLE);
-            d.draw_text("Scroll : change selected slot and scroll in inventory", 5, 155, 15, Color::PURPLE);
-        }
-        
-
-
-
     }
 
 }
