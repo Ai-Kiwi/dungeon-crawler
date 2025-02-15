@@ -25,6 +25,7 @@ pub struct ItemAttributes {
     pub damage: Option<f32>,         // Damage dealt if a weapon
     pub attack_distance: Option<f32>,// Distance damage dealt if a weapon
     pub swing_distance: Option<f32>,// Distance damage dealt if a weapon
+    pub attack_cooldown: Option<u32>, // time before can attack again after hitting, in ticks
     pub durability: Option<u32>,     // Durability for items like tools
     pub heal_amount: Option<u32>,    // Health restored if consumable
     pub effect: Option<String>,      // Special effect (e.g., "Fire Resistance")
@@ -66,9 +67,10 @@ impl PremadeItem {
                     description: "Epic stick to smack the hell out of people".to_owned(),
                     value: 1,
                     attributes: ItemAttributes{
-                        damage: Some(3.0),
+                        damage: Some(1.0),
                         attack_distance: Some(2.0),
                         swing_distance: Some(75.0),
+                        attack_cooldown: Some(60),
                         ..Default::default()
                     },
                     item_type: ItemCategory::Miscellaneous,
