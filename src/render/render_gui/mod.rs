@@ -1,8 +1,9 @@
 pub mod render_hotbar;
+pub mod render_inventory;
 use raylib::{ffi::MouseButton, prelude::RaylibDrawHandle};
 
 use crate::{assets::Assets, game_dimension::GameDimension, item::Item, player::Player, render::render_gui::render_hotbar::render_hotbar};
-
+use crate::render::render_gui::render_inventory::render_inventory;
 use super::{camera::Camera, MouseInfo, RenderBufferItem};
 
 pub struct GuiPagesInfo {
@@ -32,4 +33,6 @@ pub fn render_ui(render_buffer : &mut Vec<RenderBufferItem>, player : &mut Playe
     };
 
     render_hotbar(render_buffer, player, game_dimension, camera, d, assets, &mouse_info, gui_pages_info);
+
+    render_inventory(gui_pages_info, player, camera, assets, d);
 }
