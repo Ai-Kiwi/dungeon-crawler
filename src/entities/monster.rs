@@ -170,6 +170,8 @@ impl MonsterType{
 
 pub fn create_monster(monster: MonsterType, level : u64) -> Monster {
     let mob_id = Uuid::new_v4();
+    //the rates here increase faster then for player has they don't have skill points. This will also later be different rates of increase for different mobs as different mobs have different stats
+    //general idea is player level == mob level in terms of skill
     let damage = 20.0 * (level as f32).powf(1.2);
     let health = 100.0 * (level as f32).powf(1.2);
     let speed = 0.075;

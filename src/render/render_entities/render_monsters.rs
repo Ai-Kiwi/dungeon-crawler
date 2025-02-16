@@ -2,7 +2,13 @@ use crate::{assets::Assets, entities::monster::Monster, game_dimension::{Chunk, 
 
 pub fn render_monsters<'a>(render_buffer : &mut Vec<RenderBufferItem<'a>>, chunk : &Chunk, game_dimension : &GameDimension, camera : &Camera, assets : &'a Assets) {      
     for monster_id in chunk.monsters.iter() {
-        let monster = Monster::from_id(&game_dimension.monsters, *monster_id).unwrap();
+        let monster = match Monster::from_id(&game_dimension.monsters, *monster_id) {
+            Some(value) => value,
+            None => {
+                println!("attempt to render monster id : {} doesn't exist in monster list", monster_id);
+                continue
+            },
+        };
         let monster_data = monster;
         let x_pos = monster_data.movement.position.x;
         let y_pos = monster_data.movement.position.y;
