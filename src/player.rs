@@ -18,14 +18,35 @@ pub struct Player {
     pub xp : u64,
     pub xp_to_level_up : u64,
     pub stats : PlayerStats,
+    pub invested_skill_points : PlayerSkillPointsInvested,
 }
 
+#[derive(Clone)]
 pub struct PlayerStats {
     pub max_health: f32,
     pub attack_damage: f32,
     pub speed: f32,
     pub resistance: f32, //slight damage absorbing, not times but minus based
     pub shielding: f32, //a bar which recovers that acts as another health meter, 
+    pub health_regeneration: f32,
+    pub far_sight: f32,
+}
+
+#[derive(Clone)]
+pub struct PlayerSkillPointsInvested {
+    pub health_points_invested : u64,
+    pub damage_points_invested : u64,
+    pub speed_points_invested : u64,
+    pub resistance_points_invested : u64,
+    pub shielding_points_invested : u64,
+    pub health_regeneration_points_invested:  u64,
+    pub far_sight_points_invested:  u64,
+}
+impl PlayerSkillPointsInvested {
+    pub fn get_points_used(&self) -> u64 {
+        let points_used = self.health_points_invested + self.damage_points_invested + self.speed_points_invested + self.resistance_points_invested + self.shielding_points_invested;
+        return points_used;
+    }
 }
 
 impl Player {
@@ -60,6 +81,17 @@ impl Player {
                 speed: 0.075,
                 resistance: 0.0,
                 shielding: 0.0,
+                health_regeneration: 1.2,
+                far_sight: 1.0,
+            },
+            invested_skill_points: PlayerSkillPointsInvested { 
+                health_points_invested: 0, 
+                damage_points_invested: 0, 
+                speed_points_invested: 0, 
+                resistance_points_invested: 0, 
+                shielding_points_invested: 0,
+                health_regeneration_points_invested: 0, 
+                far_sight_points_invested: 0,
             },
         }
     }
@@ -69,11 +101,57 @@ impl Player {
         if self.xp >= self.xp_to_level_up {
             self.level += 1;
             self.xp = self.xp - self.xp_to_level_up;
-            self.xp_to_level_up = (100.0 * (self.level as f32).powf(1.2) ) as u64
+            self.xp_to_level_up = (100.0 * (self.level as f32).powf(1.2) ) as u64;
             //stat boost the level up.
 
-
+            self.stats = Player::calculate_stats(self.level, &self.invested_skill_points);
         }
+    }
+
+    pub fn calculate_stats(level : u64, invested_points: &PlayerSkillPointsInvested) -> PlayerStats {
+        let max_health = 100.0;
+        let max_health = max_health + (max_health * ((level - 1) as f32).powf(1.3) / 5.0);
+        let max_health = max_health + (max_health * (invested_points.health_points_invested as f32).powf(1.5) / 5.0);
+
+        let attack_damage = 20.0;
+        let attack_damage = attack_damage + (attack_damage * ((level - 1) as f32).powf(1.3) / 5.0);
+        let attack_damage = attack_damage + (attack_damage * (invested_points.damage_points_invested as f32).powf(1.5) / 5.0);
+
+        let speed = 0.075;
+        let speed = speed + (speed * ((level - 1) as f32).powf(1.3) / 5.0);
+        let speed = speed + (speed * (invested_points.speed_points_invested as f32).powf(1.5) / 5.0);
+
+        let resistance = 1.0;
+        let resistance = resistance + (resistance * ((level - 1) as f32).powf(1.3) / 5.0);
+        let resistance = resistance + (resistance * (invested_points.resistance_points_invested as f32).powf(1.5) / 5.0);
+
+
+        let shielding = 100.0;
+        let shielding = shielding + (shielding * (level as f32).powf(1.12) / 5.0);
+        let shielding = shielding + (shielding * ((invested_points.shielding_points_invested + 1) as f32).powf(1.12) / 5.0);
+        let shielding = shielding - 100.0;
+
+        let health_regeneration = 1.2;
+        let health_regeneration = health_regeneration + (health_regeneration * ((level - 1) as f32).powf(1.3) / 5.0);
+        let health_regeneration = health_regeneration + (health_regeneration * (invested_points.health_regeneration_points_invested as f32).powf(1.5) / 5.0);
+
+        let far_sight = 1.0;
+        let far_sight = far_sight + (far_sight * ((level - 1) as f32).powf(1.3) / 5.0);
+        let far_sight = far_sight + (far_sight * (invested_points.far_sight_points_invested as f32).powf(1.5) / 5.0);
+
+        PlayerStats {
+            max_health: max_health,
+            attack_damage: attack_damage,
+            speed: speed,
+            resistance: resistance,
+            shielding: shielding,
+            health_regeneration : health_regeneration,
+            far_sight: far_sight
+        }
+    }
+
+    pub fn calculate_skill_points_count(level : u64) -> u64 {
+        return level;
     }
 
     pub fn right_hand_attack(&mut self, game_dimension : &mut GameDimension) {

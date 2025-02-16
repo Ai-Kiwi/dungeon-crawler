@@ -1,10 +1,25 @@
 use raylib::{color::{self, Color}, ffi::{true_, Font, GetFontDefault, MouseButton}, math::{Rectangle, Vector2}, prelude::{RaylibDraw, RaylibDrawHandle}};
 
-use crate::{assets::Assets, player::Player, render::camera::Camera};
+use crate::{assets::Assets, player::{Player, PlayerSkillPointsInvested, PlayerStats}, render::camera::Camera};
 
 use super::{GuiPagesInfo, SideMenuPage};
 
-
+pub struct SideMenuState {
+    input_skill_points: PlayerSkillPointsInvested,
+    output_stats: PlayerStats,
+    current_level: u64,
+    free_points: u64,
+}
+impl SideMenuState {
+    pub fn new(player : &Player) -> Self {
+        Self {
+            input_skill_points: player.invested_skill_points.clone(),
+            output_stats: player.stats.clone(),
+            current_level: player.level,
+            free_points: Player::calculate_skill_points_count(player.level) - player.invested_skill_points.get_points_used(),
+        }
+    }
+}
 
 pub fn render_sidemenu(d : &mut RaylibDrawHandle, gui_pages_info: &mut GuiPagesInfo, player: &mut Player, camera: &Camera, assets : &Assets) {
 
@@ -19,6 +34,7 @@ pub fn render_sidemenu(d : &mut RaylibDrawHandle, gui_pages_info: &mut GuiPagesI
 
     if clickable_button(d, "Stats", window_x + 5.0, window_y + 5.0, 75.0, 25.0, 15.0, gui_pages_info.side_menu_page_open == SideMenuPage::Stats) {
         gui_pages_info.side_menu_page_open = SideMenuPage::Stats;
+        gui_pages_info.side_menu_state = SideMenuState::new(player)
     }
     if clickable_button(d, "Crafting", window_x + 85.0, window_y + 5.0, 75.0, 25.0, 15.0, gui_pages_info.side_menu_page_open == SideMenuPage::Crafting) {
         gui_pages_info.side_menu_page_open = SideMenuPage::Crafting;
@@ -30,6 +46,160 @@ pub fn render_sidemenu(d : &mut RaylibDrawHandle, gui_pages_info: &mut GuiPagesI
     match gui_pages_info.side_menu_page_open {
         SideMenuPage::Stats => {
             d.draw_text("Player stats", (window_x + 5.0) as i32, (window_y + 35.0) as i32, 25, Color::WHITE);
+
+            d.draw_text(&format!("Points left: {}", gui_pages_info.side_menu_state.free_points), (window_x + 5.0) as i32, (window_y + 60.0) as i32, 15, Color::WHITE);
+
+            if player.level != gui_pages_info.side_menu_state.current_level {
+                gui_pages_info.side_menu_state = SideMenuState::new(player)
+            }
+
+            d.draw_text(&format!("Health ({})", gui_pages_info.side_menu_state.output_stats.max_health), (window_x + 5.0) as i32, (window_y + 90.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 90.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.health_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.health_points_invested), window_x + window_width - 75.0, window_y + 90.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.health_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 90.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.health_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+            d.draw_text(&format!("Damage ({})", gui_pages_info.side_menu_state.output_stats.attack_damage), (window_x + 5.0) as i32, (window_y + 120.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 120.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.damage_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.damage_points_invested), window_x + window_width - 75.0, window_y + 120.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.damage_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 120.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.damage_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+
+            d.draw_text(&format!("Speed ({})", gui_pages_info.side_menu_state.output_stats.speed), (window_x + 5.0) as i32, (window_y + 150.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 150.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.speed_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.speed_points_invested), window_x + window_width - 75.0, window_y + 150.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.speed_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 150.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.speed_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+
+            d.draw_text(&format!("Resistance ({})", gui_pages_info.side_menu_state.output_stats.resistance), (window_x + 5.0) as i32, (window_y + 180.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 180.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.resistance_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.resistance_points_invested), window_x + window_width - 75.0, window_y + 180.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.resistance_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 180.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.resistance_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+            
+            d.draw_text(&format!("Shielding ({})", gui_pages_info.side_menu_state.output_stats.shielding), (window_x + 5.0) as i32, (window_y + 210.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 210.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.shielding_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.shielding_points_invested), window_x + window_width - 75.0, window_y + 210.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.shielding_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 210.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.shielding_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+
+            d.draw_text(&format!("health regeneration ({})", gui_pages_info.side_menu_state.output_stats.health_regeneration), (window_x + 5.0) as i32, (window_y + 240.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 240.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.health_regeneration_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.health_regeneration_points_invested), window_x + window_width - 75.0, window_y + 240.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.health_regeneration_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 240.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.health_regeneration_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+
+            d.draw_text(&format!("far sight ({})", gui_pages_info.side_menu_state.output_stats.far_sight), (window_x + 5.0) as i32, (window_y + 270.0) as i32, 25, Color::WHITE);
+            if gui_pages_info.side_menu_state.free_points > 0 {
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 270.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.far_sight_points_invested += 1;
+                    gui_pages_info.side_menu_state.free_points -= 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+            clickable_button(d, &format!("{}",gui_pages_info.side_menu_state.input_skill_points.far_sight_points_invested), window_x + window_width - 75.0, window_y + 270.0, 25.0, 25.0, 15.0, false);
+            if gui_pages_info.side_menu_state.input_skill_points.far_sight_points_invested > 0 {
+                if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 270.0, 25.0, 25.0, 15.0, false) {
+                    gui_pages_info.side_menu_state.input_skill_points.far_sight_points_invested -= 1;
+                    gui_pages_info.side_menu_state.free_points += 1;
+                    gui_pages_info.side_menu_state.output_stats = Player::calculate_stats(gui_pages_info.side_menu_state.current_level, &gui_pages_info.side_menu_state.input_skill_points)
+                }
+            }
+
+
+
+            if clickable_button(d, "Apply", window_x + 5.0, window_y + 300.0, 75.0, 25.0, 15.0, false) {
+                player.stats = gui_pages_info.side_menu_state.output_stats.clone();
+                player.invested_skill_points = gui_pages_info.side_menu_state.input_skill_points.clone();
+            }
+
+            if cfg!(debug_assertions) {
+                d.draw_text("raw level (debug cheat)", (window_x + 5.0) as i32, (window_y + 350.0) as i32, 25, Color::WHITE);
+                if clickable_button(d, "+", window_x + window_width - 50.0, window_y + 350.0, 25.0, 25.0, 15.0, false) {
+                    player.level += 1;
+                    player.stats = Player::calculate_stats(player.level, &player.invested_skill_points)
+                }
+                clickable_button(d, &format!("{}",player.level), window_x + window_width - 75.0, window_y + 350.0, 25.0, 25.0, 15.0, false);
+                if player.level > 1 {
+                    if clickable_button(d, "-", window_x + window_width - 100.0, window_y + 350.0, 25.0, 25.0, 15.0, false) {
+                        player.level -= 1;
+                        player.stats = Player::calculate_stats(player.level, &player.invested_skill_points)
+                    }
+                }
+            }
+
+
         },
         SideMenuPage::Crafting => {
 

@@ -10,7 +10,7 @@ mod item;
 mod render;
 
 use std::time::SystemTime;
-use render::{camera::Camera, main_render, render_gui::GuiPagesInfo};
+use render::{camera::Camera, main_render, render_gui::{GuiPagesInfo, SideMenuPage}};
 use assets::Assets;
 use game_dimension::GameDimension;
 use player::Player;
@@ -42,7 +42,7 @@ fn main() {
     rl.set_target_fps(142);
     rl.set_exit_key(None);
 
-    let mut gui_info = GuiPagesInfo::new();
+    let mut gui_info = GuiPagesInfo::new(&player);
     let time_now = SystemTime::now();
 
     //main thread used for rendering
@@ -114,6 +114,9 @@ fn main() {
                 camera.base_zoom = camera.base_zoom * 0.9; 
             }else if scroll < 0.0 {
                 camera.base_zoom = camera.base_zoom * 1.1;
+                if camera.base_zoom > player.stats.far_sight {
+                    camera.base_zoom = player.stats.far_sight;
+                }
             }
         }else{
             if gui_info.inventory_open == true {
@@ -144,6 +147,7 @@ fn main() {
 
         if rl.is_key_pressed(KeyboardKey::KEY_Q) {
             gui_info.side_menu_open = !gui_info.side_menu_open;
+            gui_info.side_menu_page_open = SideMenuPage::Info;
         }
         
         //make camera follow player

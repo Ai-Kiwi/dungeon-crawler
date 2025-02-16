@@ -4,6 +4,8 @@ pub mod render_sidemenu;
 use raylib::color::Color;
 use raylib::prelude::RaylibDraw;
 use raylib::{ffi::MouseButton, prelude::RaylibDrawHandle};
+use render_sidemenu::SideMenuState;
+use crate::player;
 use crate::render::render_gui::render_sidemenu::render_sidemenu;
 
 use crate::{assets::Assets, game_dimension::GameDimension, item::Item, player::Player, render::render_gui::render_hotbar::render_hotbar};
@@ -18,9 +20,10 @@ pub struct GuiPagesInfo {
     pub hotbar_selected_slot : i32,
     pub side_menu_page_open : SideMenuPage,
     pub side_menu_open: bool,
+    pub side_menu_state: SideMenuState,
 }
 impl GuiPagesInfo {
-    pub fn new() -> Self {
+    pub fn new(player : &Player) -> Self {
         Self {
             inventory_open: false,
             inventory_selected_slot: 0,
@@ -29,6 +32,7 @@ impl GuiPagesInfo {
             inventory_selected_item: None,
             side_menu_page_open: SideMenuPage::Info,
             side_menu_open: true,
+            side_menu_state: SideMenuState::new(player),
         }
     }
 }
