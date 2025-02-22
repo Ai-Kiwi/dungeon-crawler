@@ -44,6 +44,9 @@ pub fn clickable_item_slot(draw: &mut RaylibDrawHandle, assets: &Assets, x: f32,
             },
             ClickableItemSlotAction::ReplaceHotbarItem(slot, item) => {
                 player.hotbar[slot as usize] = Some(item.clone());
+                if gui_pages_info.hotbar_selected_slot == slot {
+                    player.main_hand = Some(item.clone());
+                }
             },
             ClickableItemSlotAction::SelectHotbarItem => {
 
